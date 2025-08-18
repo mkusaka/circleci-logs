@@ -1,9 +1,6 @@
 import { CircleCIAction, LogLine } from './types.js';
 
-export function filterActions(
-  actions: CircleCIAction[],
-  errorsOnly: boolean,
-): CircleCIAction[] {
+export function filterActions(actions: CircleCIAction[], errorsOnly: boolean): CircleCIAction[] {
   if (!errorsOnly) {
     return actions;
   }

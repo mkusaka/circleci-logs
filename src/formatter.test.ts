@@ -27,10 +27,7 @@ describe('printHuman', () => {
           name: 'Compile',
           status: 'success',
         },
-        lines: [
-          { message: 'Compiling source code...' },
-          { message: 'Build complete!' },
-        ],
+        lines: [{ message: 'Compiling source code...' }, { message: 'Build complete!' }],
       },
     ];
 
@@ -79,10 +76,7 @@ describe('printHuman', () => {
       {
         step: 'Test',
         action: { name: 'Run', status: 'success' },
-        lines: [
-          { message: 'Line without newline' },
-          { message: 'Line with newline\n' },
-        ],
+        lines: [{ message: 'Line without newline' }, { message: 'Line with newline\n' }],
       },
     ];
 
@@ -137,9 +131,7 @@ describe('printJson', () => {
           name: 'Compile',
           status: 'success',
         },
-        lines: [
-          { message: 'Building...', time: '2024-01-01T00:00:00Z' },
-        ],
+        lines: [{ message: 'Building...', time: '2024-01-01T00:00:00Z' }],
       },
     ];
 

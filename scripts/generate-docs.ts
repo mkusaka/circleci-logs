@@ -15,79 +15,92 @@ const version = program.version();
 const args = program.registeredArguments || [];
 const options = program.options;
 
-
 // Generate Markdown documentation
 function generateMarkdown(): string {
   const md = [];
-  
+
   // Header
   md.push(`# ${name}(1) -- ${description}`);
   md.push('');
-  
+
   // Synopsis
   md.push('## SYNOPSIS');
   md.push('');
   // Handle different argument formats
-  const argsStr = args.length > 0 ? args.map(a => {
-    // Handle both object and string formats
-    const argName = a._name || a.name || 'ARG';
-    const isRequired = a.required !== false;
-    return isRequired ? argName.toUpperCase() : `[${argName.toUpperCase()}]`;
-  }).join(' ') : 'URL';
+  const argsStr =
+    args.length > 0
+      ? args
+          .map((a) => {
+            // Handle both object and string formats
+            const argName = a._name || a.name || 'ARG';
+            const isRequired = a.required !== false;
+            return isRequired ? argName.toUpperCase() : `[${argName.toUpperCase()}]`;
+          })
+          .join(' ')
+      : 'URL';
   md.push(`\`${name}\` [OPTIONS] ${argsStr}`);
   md.push('');
-  
+
   // Description
   md.push('## DESCRIPTION');
   md.push('');
-  md.push(`**${name}** is a command-line tool that fetches and displays step logs from CircleCI jobs.`);
+  md.push(
+    `**${name}** is a command-line tool that fetches and displays step logs from CircleCI jobs.`,
+  );
   md.push('It can parse both legacy and new CircleCI UI URLs, filter logs by status or pattern,');
   md.push('and output in either human-readable or JSON format.');
   md.push('');
   md.push('The tool uses the CircleCI API v1.1 to fetch job details and requires a CircleCI');
   md.push('Personal Token for authentication.');
   md.push('');
-  
+
   // Arguments
   if (args.length > 0) {
     md.push('## ARGUMENTS');
     md.push('');
-    args.forEach(arg => {
+    args.forEach((arg) => {
       const argName = arg._name || arg.name || 'url';
       md.push(`* \`${argName.toUpperCase()}\`:`);
       const argDesc = arg.description || 'CircleCI job URL';
       md.push(`  ${argDesc}`);
       if (argName.toLowerCase() === 'url') {
         md.push('  (`https://circleci.com/gh/org/repo/12345`) and new UI format');
-        md.push('  (`https://app.circleci.com/pipelines/github/org/repo/123/workflows/abc/jobs/12345`).');
+        md.push(
+          '  (`https://app.circleci.com/pipelines/github/org/repo/123/workflows/abc/jobs/12345`).',
+        );
       }
       md.push('');
     });
   }
-  
+
   // Options
   md.push('## OPTIONS');
   md.push('');
-  
+
   // Add detailed option descriptions
   const optionDetails = {
-    '--errors-only': 'Only show actions with non-success status. Filters out all successful steps, displaying only failed, timed out, or errored actions.',
-    '--grep': 'Filter log lines using a regular expression pattern. Only lines matching the pattern will be displayed. Supports standard JavaScript regex syntax.',
-    '--json': 'Output results as structured JSON instead of human-readable format. Useful for piping to other tools or for programmatic processing.',
-    '--fail-on-error': 'Exit with code 1 if there are any error actions in the job. Useful for CI/CD pipelines to fail when errors are detected.',
-    '--token': 'CircleCI Personal Token for authentication. If not provided, the tool will use the CIRCLE_TOKEN environment variable.',
+    '--errors-only':
+      'Only show actions with non-success status. Filters out all successful steps, displaying only failed, timed out, or errored actions.',
+    '--grep':
+      'Filter log lines using a regular expression pattern. Only lines matching the pattern will be displayed. Supports standard JavaScript regex syntax.',
+    '--json':
+      'Output results as structured JSON instead of human-readable format. Useful for piping to other tools or for programmatic processing.',
+    '--fail-on-error':
+      'Exit with code 1 if there are any error actions in the job. Useful for CI/CD pipelines to fail when errors are detected.',
+    '--token':
+      'CircleCI Personal Token for authentication. If not provided, the tool will use the CIRCLE_TOKEN environment variable.',
   };
-  
-  options.forEach(opt => {
+
+  options.forEach((opt) => {
     const flag = opt.flags.split(',')[0]?.trim();
     const longFlag = opt.long;
     const desc = optionDetails[longFlag] || opt.description;
-    
+
     md.push(`* \`${opt.flags}\`:`);
     md.push(`  ${desc}`);
     md.push('');
   });
-  
+
   // Help and version
   md.push(`* \`-h\`, \`--help\`:`);
   md.push(`  Display help information and exit.`);
@@ -95,7 +108,7 @@ function generateMarkdown(): string {
   md.push(`* \`-V\`, \`--version\`:`);
   md.push(`  Display version information and exit.`);
   md.push('');
-  
+
   // Environment
   md.push('## ENVIRONMENT');
   md.push('');
@@ -103,7 +116,7 @@ function generateMarkdown(): string {
   md.push('  CircleCI Personal Token used for API authentication.');
   md.push('  This token is required to fetch job details from CircleCI.');
   md.push('');
-  
+
   // Exit codes
   md.push('## EXIT CODES');
   md.push('');
@@ -111,7 +124,7 @@ function generateMarkdown(): string {
   md.push('* `1`: Errors found in job when using --fail-on-error, or general execution error.');
   md.push('* `2`: Invalid command line arguments or missing required token.');
   md.push('');
-  
+
   // Examples
   md.push('## EXAMPLES');
   md.push('');
@@ -134,14 +147,14 @@ function generateMarkdown(): string {
   md.push('');
   md.push('Integration with GitHub CLI to fetch logs from latest PR check:');
   md.push('');
-  md.push('    $ gh pr checks --json link -q \'.[].link\' | head -n1 | \\');
+  md.push("    $ gh pr checks --json link -q '.[].link' | head -n1 | \\");
   md.push('      xargs -n1 circleci-logs --errors-only');
   md.push('');
   md.push('Use in CI pipeline to fail on errors:');
   md.push('');
   md.push('    $ circleci-logs --fail-on-error --errors-only "$BUILD_URL"');
   md.push('');
-  
+
   // Requirements
   md.push('## REQUIREMENTS');
   md.push('');
@@ -149,7 +162,7 @@ function generateMarkdown(): string {
   md.push('');
   md.push('CircleCI Personal Token with appropriate permissions');
   md.push('');
-  
+
   // API Details
   md.push('## API DETAILS');
   md.push('');
@@ -160,7 +173,7 @@ function generateMarkdown(): string {
   md.push('3. For each step action with output, fetch logs from the `output_url` (signed URL)');
   md.push('4. Apply filters and format the output');
   md.push('');
-  
+
   // Footer
   md.push('## BUGS');
   md.push('');
@@ -182,7 +195,7 @@ function generateMarkdown(): string {
   md.push('gh(1), jq(1), grep(1)');
   md.push('');
   md.push('Full documentation at: <https://github.com/mkusaka/circleci-logs>');
-  
+
   return md.join('\n');
 }
 

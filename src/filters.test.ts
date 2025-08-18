@@ -95,7 +95,10 @@ describe('filterLines', () => {
     const grep = /ERROR|WARNING/;
     const result = filterLines(mockLines, grep);
     expect(result).toHaveLength(3);
-    expect(result).toContainEqual({ message: 'WARNING: Deprecated API', time: '2024-01-01T00:00:02Z' });
+    expect(result).toContainEqual({
+      message: 'WARNING: Deprecated API',
+      time: '2024-01-01T00:00:02Z',
+    });
   });
 
   it('should handle lines with undefined messages', () => {
