@@ -4,7 +4,7 @@
 [![npm version](https://badge.fury.io/js/circleci-logs.svg)](https://badge.fury.io/js/circleci-logs)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-Fetch CircleCI job step logs from GitHub PR checks URLs. Zero-dependency CLI tool with TypeScript support.
+Fetch CircleCI job step logs from GitHub PR checks URLs. Lightweight CLI tool with TypeScript support and minimal dependencies.
 
 ## Requirements
 
