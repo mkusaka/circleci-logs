@@ -1,0 +1,177 @@
+.TH "CIRCLECI\-LOGS" "1" "August 2025" "0.0.0"
+.SH "NAME"
+\fBcircleci-logs\fR \- Fetch CircleCI job step logs from a gh pr checks URL
+.SH SYNOPSIS
+.P
+\fBcircleci\-logs\fP [OPTIONS] URL
+.SH DESCRIPTION
+.P
+\fBcircleci\-logs\fR is a command\-line tool that fetches and displays step logs from CircleCI jobs\.
+.br
+It can parse both legacy and new CircleCI UI URLs, filter logs by status or pattern,
+.br
+and output in either human\-readable or JSON format\.
+.P
+The tool uses the CircleCI API v1\.1 to fetch job details and requires a CircleCI
+.br
+Personal Token for authentication\.
+.SH ARGUMENTS
+
+.RS 1
+.IP \(bu 2
+\fBURL\fP:
+.br
+CircleCI job URL
+.br
+(\fBhttps://circleci\.com/gh/org/repo/12345\fP) and new UI format
+.br
+(\fBhttps://app\.circleci\.com/pipelines/github/org/repo/123/workflows/abc/jobs/12345\fP)\.
+
+.RE
+.SH OPTIONS
+
+.RS 1
+.IP \(bu 2
+\fB\-V, \-\-version\fP:
+.br
+output the version number
+.IP \(bu 2
+\fB\-\-errors\-only\fP:
+.br
+Only show actions with non\-success status\. Filters out all successful steps, displaying only failed, timed out, or errored actions\.
+.IP \(bu 2
+\fB\-\-grep <pattern>\fP:
+.br
+Filter log lines using a regular expression pattern\. Only lines matching the pattern will be displayed\. Supports standard JavaScript regex syntax\.
+.IP \(bu 2
+\fB\-\-json\fP:
+.br
+Output results as structured JSON instead of human\-readable format\. Useful for piping to other tools or for programmatic processing\.
+.IP \(bu 2
+\fB\-\-fail\-on\-error\fP:
+.br
+Exit with code 1 if there are any error actions in the job\. Useful for CI/CD pipelines to fail when errors are detected\.
+.IP \(bu 2
+\fB\-\-token <token>\fP:
+.br
+CircleCI Personal Token for authentication\. If not provided, the tool will use the CIRCLE_TOKEN environment variable\.
+.IP \(bu 2
+\fB\-\-verbose\fP:
+.br
+Show verbose output including debug information
+.IP \(bu 2
+\fB\-h\fP, \fB\-\-help\fP:
+.br
+Display help information and exit\.
+.IP \(bu 2
+\fB\-V\fP, \fB\-\-version\fP:
+.br
+Display version information and exit\.
+
+.RE
+.SH ENVIRONMENT
+
+.RS 1
+.IP \(bu 2
+\fBCIRCLE_TOKEN\fP:
+.br
+CircleCI Personal Token used for API authentication\.
+.br
+This token is required to fetch job details from CircleCI\.
+
+.RE
+.SH EXIT CODES
+
+.RS 1
+.IP \(bu 2
+\fB0\fP: Successful execution (or no errors found when using \-\-fail\-on\-error)\.
+.IP \(bu 2
+\fB1\fP: Errors found in job when using \-\-fail\-on\-error, or general execution error\.
+.IP \(bu 2
+\fB2\fP: Invalid command line arguments or missing required token\.
+
+.RE
+.SH EXAMPLES
+.P
+Fetch all logs from a CircleCI job:
+.RS 2
+.nf
+$ export CIRCLE_TOKEN=xxxxx
+$ circleci\-logs "https://circleci\.com/gh/org/repo/12345"
+.fi
+.RE
+.P
+Show only failed actions:
+.RS 2
+.nf
+$ circleci\-logs \-\-errors\-only "https://circleci\.com/gh/org/repo/12345"
+.fi
+.RE
+.P
+Filter logs for ERROR or WARNING messages:
+.RS 2
+.nf
+$ circleci\-logs \-\-grep "ERROR|WARN" "https://circleci\.com/gh/org/repo/12345"
+.fi
+.RE
+.P
+Output as JSON for further processing:
+.RS 2
+.nf
+$ circleci\-logs \-\-json "https://circleci\.com/gh/org/repo/12345" | jq '\.'
+.fi
+.RE
+.P
+Integration with GitHub CLI to fetch logs from latest PR check:
+.RS 2
+.nf
+$ gh pr checks \-\-json link \-q '\.[]\.link' | head \-n1 | \\
+  xargs \-n1 circleci\-logs \-\-errors\-only
+.fi
+.RE
+.P
+Use in CI pipeline to fail on errors:
+.RS 2
+.nf
+$ circleci\-logs \-\-fail\-on\-error \-\-errors\-only "$BUILD_URL"
+.fi
+.RE
+.SH REQUIREMENTS
+.P
+Node\.js >= 22\.18\.0
+.P
+CircleCI Personal Token with appropriate permissions
+.SH API DETAILS
+.P
+The tool uses CircleCI API v1\.1 with the following workflow:
+
+.RS 1
+.IP \(bu 2
+Parse the CircleCI job URL to extract organization, repository, and job number
+.IP \(bu 2
+Call \fB/api/v1\.1/project/{vcs}/{org}/{repo}/{job_number}\fP with authentication
+.IP \(bu 2
+For each step action with output, fetch logs from the \fBoutput_url\fP (signed URL)
+.IP \(bu 2
+Apply filters and format the output
+
+.RE
+.SH BUGS
+.P
+Report bugs at: https://github.com/mkusaka/circleci-logs/issues
+.SH AUTHOR
+.P
+Written by the circleci\-logs contributors\.
+.SH COPYRIGHT
+.P
+Copyright (C) 2025\. MIT License\.
+.P
+This is free software: you are free to change and redistribute it\.
+.br
+There is NO WARRANTY, to the extent permitted by law\.
+.SH SEE ALSO
+.P
+gh(1), jq(1), grep(1)
+.P
+Full documentation at: https://github.com/mkusaka/circleci-logs
+
