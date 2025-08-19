@@ -2,6 +2,7 @@
 
 import { Command } from 'commander';
 import chalk from 'chalk';
+import packageJson from '../package.json' with { type: 'json' };
 import { CLIOptions, LogSegment, LogLine } from './types.js';
 import { parseJobUrl, fetchJobDetails, fetchActionOutput } from './circleci.js';
 import { filterActions, filterLines } from './filters.js';
@@ -12,7 +13,7 @@ export const program = new Command();
 program
   .name('circleci-logs')
   .description('Fetch CircleCI job step logs from a gh pr checks URL')
-  .version('0.0.0')
+  .version(packageJson.version)
   .argument('<url>', 'CircleCI job URL')
   .option('--errors-only', 'Only show actions with non-success status', false)
   .option('--grep <pattern>', 'Filter log lines with regex pattern')
@@ -117,8 +118,9 @@ program
     }
   });
 
-// Parse command line arguments only when running as main module
-if (import.meta.url === `file://${process.argv[1]}`) {
+// Parse command line arguments when executed directly
+// Check if this file is being executed directly (not imported)
+if (process.argv[1]?.endsWith('index.js') || process.argv[1]?.endsWith('index.ts')) {
   program.parse(process.argv);
 
   // Show help if no arguments provided
