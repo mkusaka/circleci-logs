@@ -23,6 +23,19 @@ npm i -g circleci-logs
 pnpm add -g circleci-logs
 ```
 
+### Accessing the Manual Page
+
+After global installation, the man page is available but may require adding npm's man directory to your MANPATH:
+
+```bash
+# Option 1: Add to MANPATH (add to your shell profile for persistence)
+export MANPATH="$(npm config get prefix)/share/man:$MANPATH"
+man circleci-logs
+
+# Option 2: Use explicit path
+man -M $(npm config get prefix)/share/man circleci-logs
+```
+
 ### Local Development
 
 ```bash
