@@ -13,7 +13,23 @@ Fetch CircleCI job step logs from GitHub PR checks URLs. Lightweight CLI tool wi
 
 ## Installation
 
+### Global Install (Recommended)
+
 ```bash
+# Install globally from npm
+npm i -g circleci-logs
+
+# Or using pnpm
+pnpm add -g circleci-logs
+```
+
+### Local Development
+
+```bash
+# Clone the repository
+git clone https://github.com/mkusaka/circleci-logs.git
+cd circleci-logs
+
 # Install dependencies
 pnpm install
 
@@ -92,6 +108,65 @@ This tool uses CircleCI API v1.1 to fetch job details. The flow is:
 2. Call `/api/v1.1/project/{vcs}/{org}/{repo}/{job_number}` with your CircleCI token
 3. For each step action with output, fetch logs from the `output_url` (signed URL, no auth required)
 4. Apply filters and format the output
+
+## LLM Usage
+
+### Prompt Examples for AI Assistants
+
+When using this tool with AI assistants (Claude, ChatGPT, etc.), you can use these prompts:
+
+#### Basic Usage
+```
+I need to check CircleCI logs from a PR. The CircleCI URL is https://circleci.com/gh/myorg/myrepo/12345
+My CIRCLE_TOKEN is: [your-token]
+
+Please use circleci-logs to:
+1. Show me only the failed steps
+2. Search for any ERROR messages in the logs
+```
+
+#### Debugging Failed CI
+```
+My CI is failing at: https://app.circleci.com/pipelines/github/org/repo/123/workflows/abc/jobs/12345
+CIRCLE_TOKEN=[your-token]
+
+Using circleci-logs, please:
+1. Get all error logs with: circleci-logs --errors-only [URL]
+2. Search for timeout issues: circleci-logs --grep "timeout|timed out" [URL]
+3. Get the full JSON output for analysis: circleci-logs --json [URL]
+```
+
+#### Automated Analysis
+```
+Analyze this CircleCI job for common issues:
+URL: [CircleCI URL]
+Token: [CIRCLE_TOKEN]
+
+Run these commands:
+1. circleci-logs --errors-only --token [TOKEN] [URL] | head -50
+2. circleci-logs --grep "ERROR|FAILED|FATAL" --token [TOKEN] [URL]
+3. circleci-logs --json --token [TOKEN] [URL] | jq '.[] | select(.action.status != "success")'
+
+Then summarize:
+- What steps failed?
+- What were the error messages?
+- What is the likely root cause?
+```
+
+### Tips for LLM Integration
+
+1. **Always provide your CIRCLE_TOKEN** - The tool requires authentication
+2. **Use --json for structured analysis** - Easier for LLMs to parse and analyze
+3. **Combine with jq** - For complex JSON filtering and analysis
+4. **Use --errors-only first** - To quickly identify problem areas
+5. **Use --grep with patterns** - To search for specific error types
+
+### Security Note
+
+When sharing logs with LLMs:
+- Review logs for sensitive information before sharing
+- Consider using `--grep` to filter only relevant error messages
+- Use private/local LLMs for sensitive codebases
 
 ## License
 
