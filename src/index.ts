@@ -41,19 +41,32 @@ program
         grep: opts.grep ? new RegExp(opts.grep) : null,
         token,
         url,
+        verbose: opts.verbose ?? false,
       };
 
       // Parse CircleCI job URL
       const jobInfo = parseJobUrl(url);
+      
+      if (options.verbose) {
+        console.error(chalk.gray(`Parsed URL: ${JSON.stringify(jobInfo)}`));
+      }
 
       // Fetch job details from CircleCI API
       const job = await fetchJobDetails(jobInfo, token);
+      
+      if (options.verbose) {
+        console.error(chalk.gray(`Job status: ${job.status}, Steps: ${job.steps?.length ?? 0}`));
+      }
 
       // Process all steps and actions
       const segments: LogSegment[] = [];
 
       for (const step of job.steps ?? []) {
         const actions = filterActions(step.actions ?? [], options.errorsOnly);
+        
+        if (options.verbose && step.actions) {
+          console.error(chalk.gray(`Step "${step.name}": ${step.actions.length} actions, ${actions.length} after filter`));
+        }
 
         for (const action of actions) {
           let lines: LogLine[] = [];
@@ -73,7 +86,17 @@ program
       }
 
       // Output results
-      if (options.json) {
+      if (options.verbose) {
+        console.error(chalk.gray(`Total segments to output: ${segments.length}`));
+      }
+      
+      if (segments.length === 0 && !options.json) {
+        console.log(chalk.yellow('No log output found. This could mean:'));
+        console.log('- The job has no steps with output');
+        console.log('- All steps were filtered out (try without --errors-only)');
+        console.log('- The job is still running or has no logs');
+        console.log('\nUse --verbose for more details');
+      } else if (options.json) {
         printJson(segments);
       } else {
         printHuman(segments);

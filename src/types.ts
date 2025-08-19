@@ -5,6 +5,7 @@ export interface CLIOptions {
   grep: RegExp | null;
   token: string | null;
   url: string;
+  verbose: boolean;
 }
 
 export interface JobUrlInfo {
