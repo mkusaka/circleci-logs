@@ -76,12 +76,65 @@ circleci-logs --token "your-token" "https://circleci.com/gh/org/repo/12345"
 
 ### Integration with GitHub CLI
 
+#### Basic Integration
+
 ```bash
 # Get the latest PR check URL and fetch its logs
 gh pr checks --json link -q '.[].link' | head -n1 | xargs -n1 circleci-logs
 
-# With error filtering
+# Show only error actions from the latest check
 gh pr checks --json link -q '.[].link' | head -n1 | xargs -n1 circleci-logs --errors-only
+```
+
+#### Advanced: Filter Failed Checks Only
+
+```bash
+# Get logs only from FAILED CircleCI checks
+gh pr checks --json state,link,name -q '.[] | select(.state=="FAILURE") | select(.name | contains("circleci")) | .link' | \
+  xargs -n1 circleci-logs --errors-only
+
+# Process all failed checks (not just CircleCI)
+gh pr checks --json state,link -q '.[] | select(.state=="FAILURE") | .link' | \
+  while read url; do
+    echo "Processing failed check: $url"
+    circleci-logs --errors-only "$url"
+  done
+
+# Get logs from specific workflow by name
+gh pr checks --json name,link -q '.[] | select(.name | contains("build")) | .link' | \
+  xargs -n1 circleci-logs
+```
+
+#### Check States Reference
+
+GitHub PR checks can have these states:
+- `SUCCESS` - Check passed
+- `FAILURE` - Check failed
+- `PENDING` - Check is still running
+- `NEUTRAL` - Check completed with neutral result
+- `CANCELLED` - Check was cancelled
+- `SKIPPED` - Check was skipped
+- `TIMED_OUT` - Check timed out
+
+#### Useful Combinations
+
+```bash
+# Get summary of all failed checks with their error logs
+gh pr checks --json state,name,link -q '.[] | select(.state=="FAILURE")' | \
+  jq -r '"\(.name): \(.link)"' | \
+  while IFS=': ' read name url; do
+    echo "=== $name ==="
+    if [[ "$url" == *"circleci.com"* ]]; then
+      circleci-logs --errors-only "$url" | head -20
+    fi
+  done
+
+# Check if any CircleCI jobs failed and get their logs
+if gh pr checks --json state,name -q '.[] | select(.state=="FAILURE") | select(.name | contains("circleci"))' | jq -e '.' > /dev/null; then
+  echo "CircleCI checks failed. Fetching error logs..."
+  gh pr checks --json state,link,name -q '.[] | select(.state=="FAILURE") | select(.name | contains("circleci")) | .link' | \
+    xargs -n1 circleci-logs --errors-only
+fi
 ```
 
 ## Development
