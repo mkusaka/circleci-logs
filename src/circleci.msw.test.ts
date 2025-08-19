@@ -61,8 +61,10 @@ describe('CircleCI API with MSW', () => {
 
       expect(result.status).toBe('success');
       expect(result.steps).toHaveLength(3);
-      expect(result.steps![0].name).toBe('Spin up environment');
-      expect(result.steps![2].actions![0].output_url).toBe('https://storage.example.com/output/tests');
+      expect(result.steps?.[0]?.name).toBe('Spin up environment');
+      expect(result.steps?.[2]?.actions?.[0]?.output_url).toBe(
+        'https://storage.example.com/output/tests',
+      );
     });
 
     it('should handle failed job with error details', async () => {
@@ -98,8 +100,8 @@ describe('CircleCI API with MSW', () => {
 
       expect(result.status).toBe('failed');
       expect(result.outcome).toBe('failed');
-      expect(result.steps![0].actions![0].failed).toBe(true);
-      expect(result.steps![0].actions![0].exit_code).toBe(1);
+      expect(result.steps?.[0]?.actions?.[0]?.failed).toBe(true);
+      expect(result.steps?.[0]?.actions?.[0]?.exit_code).toBe(1);
     });
 
     it('should handle timedout actions', async () => {
@@ -131,8 +133,8 @@ describe('CircleCI API with MSW', () => {
       const jobInfo = { vcsAbbrev: 'gh', org: 'myorg', repo: 'myrepo', jobNumber: '789' };
       const result = await fetchJobDetails(jobInfo, 'test-token');
 
-      expect(result.steps![0].actions![0].status).toBe('timedout');
-      expect(result.steps![0].actions![0].timedout).toBe(true);
+      expect(result.steps?.[0]?.actions?.[0]?.status).toBe('timedout');
+      expect(result.steps?.[0]?.actions?.[0]?.timedout).toBe(true);
     });
 
     it('should handle 401 unauthorized error', async () => {
@@ -143,8 +145,10 @@ describe('CircleCI API with MSW', () => {
       );
 
       const jobInfo = { vcsAbbrev: 'gh', org: 'myorg', repo: 'myrepo', jobNumber: '401' };
-      
-      await expect(fetchJobDetails(jobInfo, 'invalid-token')).rejects.toThrow('HTTP 401 Unauthorized');
+
+      await expect(fetchJobDetails(jobInfo, 'invalid-token')).rejects.toThrow(
+        'HTTP 401 Unauthorized',
+      );
     });
 
     it('should handle 404 not found error', async () => {
@@ -155,7 +159,7 @@ describe('CircleCI API with MSW', () => {
       );
 
       const jobInfo = { vcsAbbrev: 'gh', org: 'myorg', repo: 'myrepo', jobNumber: '404' };
-      
+
       await expect(fetchJobDetails(jobInfo, 'test-token')).rejects.toThrow('HTTP 404 Not Found');
     });
 
@@ -167,8 +171,10 @@ describe('CircleCI API with MSW', () => {
       );
 
       const jobInfo = { vcsAbbrev: 'gh', org: 'myorg', repo: 'myrepo', jobNumber: '500' };
-      
-      await expect(fetchJobDetails(jobInfo, 'test-token')).rejects.toThrow('HTTP 500 Internal Server Error');
+
+      await expect(fetchJobDetails(jobInfo, 'test-token')).rejects.toThrow(
+        'HTTP 500 Internal Server Error',
+      );
     });
 
     it('should handle network error', async () => {
@@ -179,7 +185,7 @@ describe('CircleCI API with MSW', () => {
       );
 
       const jobInfo = { vcsAbbrev: 'gh', org: 'myorg', repo: 'myrepo', jobNumber: 'network' };
-      
+
       await expect(fetchJobDetails(jobInfo, 'test-token')).rejects.toThrow();
     });
 
@@ -195,7 +201,7 @@ describe('CircleCI API with MSW', () => {
 
       const jobInfo = { vcsAbbrev: 'gh', org: 'myorg', repo: 'myrepo', jobNumber: 'empty' };
       const result = await fetchJobDetails(jobInfo, 'test-token');
-      
+
       expect(result.status).toBe('not_run');
       expect(result.steps).toEqual([]);
     });
@@ -223,9 +229,9 @@ describe('CircleCI API with MSW', () => {
 
       const jobInfo = { vcsAbbrev: 'gh', org: 'myorg', repo: 'myrepo', jobNumber: 'no-output' };
       const result = await fetchJobDetails(jobInfo, 'test-token');
-      
-      expect(result.steps![0].actions![0].has_output).toBe(false);
-      expect(result.steps![0].actions![0].output_url).toBeUndefined();
+
+      expect(result.steps?.[0]?.actions?.[0]?.has_output).toBe(false);
+      expect(result.steps?.[0]?.actions?.[0]?.output_url).toBeUndefined();
     });
 
     it('should handle parallel actions in a step', async () => {
@@ -270,10 +276,10 @@ describe('CircleCI API with MSW', () => {
 
       const jobInfo = { vcsAbbrev: 'gh', org: 'myorg', repo: 'myrepo', jobNumber: 'parallel' };
       const result = await fetchJobDetails(jobInfo, 'test-token');
-      
-      expect(result.steps![0].actions).toHaveLength(3);
-      expect(result.steps![0].actions![0].parallel).toBe(true);
-      expect(result.steps![0].actions![2].status).toBe('failed');
+
+      expect(result.steps?.[0]?.actions).toHaveLength(3);
+      expect(result.steps?.[0]?.actions?.[0]?.parallel).toBe(true);
+      expect(result.steps?.[0]?.actions?.[2]?.status).toBe('failed');
     });
   });
 
@@ -290,10 +296,10 @@ describe('CircleCI API with MSW', () => {
       );
 
       const logs = await fetchActionOutput('https://storage.example.com/output/test-logs');
-      
+
       expect(logs).toHaveLength(3);
-      expect(logs[0].message).toBe('Starting tests...');
-      expect(logs[2].message).toBe('All tests passed!');
+      expect(logs[0]?.message).toBe('Starting tests...');
+      expect(logs[2]?.message).toBe('All tests passed!');
     });
 
     it('should handle empty log output', async () => {
@@ -304,7 +310,7 @@ describe('CircleCI API with MSW', () => {
       );
 
       const logs = await fetchActionOutput('https://storage.example.com/output/empty');
-      
+
       expect(logs).toEqual([]);
     });
 
@@ -316,10 +322,10 @@ describe('CircleCI API with MSW', () => {
       );
 
       const logs = await fetchActionOutput('https://storage.example.com/output/malformed');
-      
+
       expect(logs).toHaveLength(1);
-      expect(logs[0].message).toContain('failed to fetch output_url');
-      expect(logs[0].message).toContain('is not valid JSON');
+      expect(logs[0]?.message).toContain('failed to fetch output_url');
+      expect(logs[0]?.message).toContain('is not valid JSON');
     });
 
     it('should handle logs with special characters', async () => {
@@ -334,10 +340,10 @@ describe('CircleCI API with MSW', () => {
       );
 
       const logs = await fetchActionOutput('https://storage.example.com/output/special');
-      
-      expect(logs[0].message).toContain('quotes');
-      expect(logs[1].message).toContain('🎉');
-      expect(logs[2].message).toContain('\\n');
+
+      expect(logs[0]?.message).toContain('quotes');
+      expect(logs[1]?.message).toContain('🎉');
+      expect(logs[2]?.message).toContain('\\n');
     });
 
     it('should handle very large log files', async () => {
@@ -353,10 +359,10 @@ describe('CircleCI API with MSW', () => {
       );
 
       const logs = await fetchActionOutput('https://storage.example.com/output/large');
-      
+
       expect(logs).toHaveLength(1000);
-      expect(logs[0].message).toBe('Log line 1');
-      expect(logs[999].message).toBe('Log line 1000');
+      expect(logs[0]?.message).toBe('Log line 1');
+      expect(logs[999]?.message).toBe('Log line 1000');
     });
 
     it('should handle 403 forbidden on storage URL', async () => {
@@ -367,16 +373,16 @@ describe('CircleCI API with MSW', () => {
       );
 
       const logs = await fetchActionOutput('https://storage.example.com/output/forbidden');
-      
+
       expect(logs).toHaveLength(1);
-      expect(logs[0].message).toContain('failed to fetch output_url');
-      expect(logs[0].message).toContain('HTTP 403 Forbidden');
+      expect(logs[0]?.message).toContain('failed to fetch output_url');
+      expect(logs[0]?.message).toContain('HTTP 403 Forbidden');
     });
 
     it('should handle network timeout', async () => {
       server.use(
         http.get('https://storage.example.com/output/timeout', async () => {
-          await new Promise(resolve => setTimeout(resolve, 10000));
+          await new Promise((resolve) => setTimeout(resolve, 10000));
           return HttpResponse.json([]);
         }),
       );
@@ -386,7 +392,7 @@ describe('CircleCI API with MSW', () => {
 
       // This will timeout in a real scenario
       await expect(
-        fetch('https://storage.example.com/output/timeout', { signal: controller.signal })
+        fetch('https://storage.example.com/output/timeout', { signal: controller.signal }),
       ).rejects.toThrow();
     });
   });
@@ -424,7 +430,7 @@ describe('CircleCI API with MSW', () => {
 
     it('should handle new UI format with complex paths', () => {
       const result = parseJobUrl(
-        'https://app.circleci.com/pipelines/github/myorg/my-repo/1234/workflows/abc-def-ghi/jobs/56789'
+        'https://app.circleci.com/pipelines/github/myorg/my-repo/1234/workflows/abc-def-ghi/jobs/56789',
       );
       expect(result).toEqual({
         vcsAbbrev: 'gh',
@@ -446,8 +452,12 @@ describe('CircleCI API with MSW', () => {
 
     it('should throw on invalid URLs', () => {
       expect(() => parseJobUrl('not-a-url')).toThrow('Unsupported CircleCI job URL format');
-      expect(() => parseJobUrl('https://example.com/something')).toThrow('Unsupported CircleCI job URL format');
-      expect(() => parseJobUrl('https://circleci.com/invalid/format')).toThrow('Unsupported CircleCI job URL format');
+      expect(() => parseJobUrl('https://example.com/something')).toThrow(
+        'Unsupported CircleCI job URL format',
+      );
+      expect(() => parseJobUrl('https://circleci.com/invalid/format')).toThrow(
+        'Unsupported CircleCI job URL format',
+      );
     });
   });
 
@@ -466,8 +476,10 @@ describe('CircleCI API with MSW', () => {
       );
 
       const jobInfo = { vcsAbbrev: 'gh', org: 'myorg', repo: 'myrepo', jobNumber: 'ratelimit' };
-      
-      await expect(fetchJobDetails(jobInfo, 'test-token')).rejects.toThrow('HTTP 429 Too Many Requests');
+
+      await expect(fetchJobDetails(jobInfo, 'test-token')).rejects.toThrow(
+        'HTTP 429 Too Many Requests',
+      );
     });
 
     it('should handle temporary server errors', async () => {
@@ -486,9 +498,11 @@ describe('CircleCI API with MSW', () => {
       );
 
       const jobInfo = { vcsAbbrev: 'gh', org: 'myorg', repo: 'myrepo', jobNumber: 'retry' };
-      
+
       // First attempt should fail
-      await expect(fetchJobDetails(jobInfo, 'test-token')).rejects.toThrow('HTTP 503 Service Unavailable');
+      await expect(fetchJobDetails(jobInfo, 'test-token')).rejects.toThrow(
+        'HTTP 503 Service Unavailable',
+      );
     });
   });
 });
