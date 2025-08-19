@@ -118,13 +118,20 @@ program
     }
   });
 
-// Parse command line arguments when executed directly
-// Check if this file is being executed directly (not imported)
-if (process.argv[1]?.endsWith('index.js') || process.argv[1]?.endsWith('index.ts')) {
+// Export for testing/importing
+export function run() {
   program.parse(process.argv);
 
   // Show help if no arguments provided
   if (process.argv.length === 2) {
     program.help();
   }
+}
+
+// Only run if this is the main module being executed
+// Check if running as generate-docs script
+const isGenerateDocs = process.argv[1]?.includes('generate-docs');
+
+if (!isGenerateDocs) {
+  run();
 }
