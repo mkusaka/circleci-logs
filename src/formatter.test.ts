@@ -86,6 +86,16 @@ describe('printHuman', () => {
     expect(stdoutWriteSpy).toHaveBeenCalledWith('Line with newline\n');
   });
 
+  it('should handle completely empty segments array', () => {
+    const segments: LogSegment[] = [];
+
+    printHuman(segments);
+
+    // Should not throw and handle gracefully
+    expect(consoleLogSpy).not.toHaveBeenCalled();
+    expect(stdoutWriteSpy).not.toHaveBeenCalled();
+  });
+
   it('should apply correct colors for different statuses', () => {
     const testCases = [
       { status: 'success', expectedColor: 'green' },

@@ -46,14 +46,14 @@ program
 
       // Parse CircleCI job URL
       const jobInfo = parseJobUrl(url);
-      
+
       if (options.verbose) {
         console.error(chalk.gray(`Parsed URL: ${JSON.stringify(jobInfo)}`));
       }
 
       // Fetch job details from CircleCI API
       const job = await fetchJobDetails(jobInfo, token);
-      
+
       if (options.verbose) {
         console.error(chalk.gray(`Job status: ${job.status}, Steps: ${job.steps?.length ?? 0}`));
       }
@@ -63,9 +63,13 @@ program
 
       for (const step of job.steps ?? []) {
         const actions = filterActions(step.actions ?? [], options.errorsOnly);
-        
+
         if (options.verbose && step.actions) {
-          console.error(chalk.gray(`Step "${step.name}": ${step.actions.length} actions, ${actions.length} after filter`));
+          console.error(
+            chalk.gray(
+              `Step "${step.name}": ${step.actions.length} actions, ${actions.length} after filter`,
+            ),
+          );
         }
 
         for (const action of actions) {
@@ -89,7 +93,7 @@ program
       if (options.verbose) {
         console.error(chalk.gray(`Total segments to output: ${segments.length}`));
       }
-      
+
       if (segments.length === 0 && !options.json) {
         console.log(chalk.yellow('No log output found. This could mean:'));
         console.log('- The job has no steps with output');
