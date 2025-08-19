@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { parseJobUrl, fetchJson, fetchJobDetails, fetchActionOutput } from './circleci.js';
 import type { JobUrlInfo } from './types.js';
 import { server } from './mocks/server.js';
@@ -123,8 +123,8 @@ describe('fetchJson', () => {
       'X-Custom-Header': 'test-value',
     });
 
-    expect(capturedHeaders?.get('Authorization')).toBe('Bearer test-token');
-    expect(capturedHeaders?.get('X-Custom-Header')).toBe('test-value');
+    expect(capturedHeaders!.get('Authorization')).toBe('Bearer test-token');
+    expect(capturedHeaders!.get('X-Custom-Header')).toBe('test-value');
   });
 
   it('should throw error for non-OK response', async () => {
