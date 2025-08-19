@@ -23,6 +23,37 @@ npm i -g circleci-logs
 pnpm add -g circleci-logs
 ```
 
+### GitHub CLI Extension (Alternative)
+
+Install as a GitHub CLI extension for seamless `gh` integration:
+
+```bash
+# First, ensure circleci-logs is installed globally
+npm i -g circleci-logs
+
+# Then install the gh extension
+gh extension install mkusaka/circleci-logs
+
+# Now you can use it as a gh subcommand
+gh circleci-logs --help
+```
+
+With the gh extension, you get enhanced features:
+
+```bash
+# Check current PR's failed CI (auto-detects PR)
+gh circleci-logs --errors-only
+
+# Check specific PR
+gh circleci-logs 123 --errors-only
+
+# Get all failed CircleCI checks
+gh circleci-logs failed --errors-only
+
+# Direct URL still works
+gh circleci-logs https://circleci.com/gh/org/repo/12345
+```
+
 ### Accessing the Manual Page
 
 After global installation, the man page is available but may require adding npm's man directory to your MANPATH:

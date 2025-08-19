@@ -1,0 +1,153 @@
+#!/usr/bin/env bash
+set -e
+
+# Advanced GitHub CLI extension for circleci-logs
+# Usage: gh circleci-logs [--errors-only] [--grep pattern] [pr-number|url]
+
+# Check if circleci-logs is installed
+if ! command -v circleci-logs &> /dev/null; then
+    echo "Error: circleci-logs is not installed." >&2
+    echo "Install it with: npm i -g circleci-logs" >&2
+    exit 1
+fi
+
+# Parse arguments
+ARGS=()
+URL=""
+SHOW_HELP=false
+
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        -h|--help)
+            SHOW_HELP=true
+            shift
+            ;;
+        -V|--version)
+            circleci-logs --version
+            exit 0
+            ;;
+        --errors-only|--grep|--json|--fail-on-error|--token|--verbose)
+            ARGS+=("$1")
+            if [[ "$1" == "--grep" || "$1" == "--token" ]] && [[ $# -gt 1 ]]; then
+                shift
+                ARGS+=("$1")
+            fi
+            shift
+            ;;
+        -*)
+            ARGS+=("$1")
+            shift
+            ;;
+        *)
+            URL="$1"
+            shift
+            ;;
+    esac
+done
+
+if [[ "$SHOW_HELP" == "true" ]]; then
+    cat << EOF
+GitHub CLI extension for CircleCI logs
+
+Usage: gh circleci-logs [options] [pr-number|url]
+
+Arguments:
+  pr-number    PR number to check (defaults to current branch's PR)
+  url          Direct CircleCI job URL
+
+Options:
+  --errors-only     Show only failed actions
+  --grep <pattern>  Filter logs with regex
+  --json           Output as JSON
+  --fail-on-error  Exit with code 1 on errors
+  --token <token>  CircleCI token (or use CIRCLE_TOKEN env)
+  --verbose        Show debug information
+  -h, --help       Show this help
+
+Examples:
+  # Check current PR's failed CI
+  gh circleci-logs --errors-only
+
+  # Check specific PR
+  gh circleci-logs 123 --errors-only
+
+  # Check direct URL
+  gh circleci-logs https://circleci.com/gh/org/repo/12345
+
+  # Get all failed CircleCI checks from current PR
+  gh circleci-logs failed --errors-only
+EOF
+    exit 0
+fi
+
+# Function to get CircleCI URLs from PR
+get_circleci_urls() {
+    local pr_number="$1"
+    local filter="$2"
+    
+    if [[ "$filter" == "failed" ]]; then
+        gh pr checks "$pr_number" --json state,link,name -q '.[] | select(.state=="FAILURE") | select(.name | contains("circleci")) | .link'
+    else
+        gh pr checks "$pr_number" --json link,name -q '.[] | select(.name | contains("circleci")) | .link'
+    fi
+}
+
+# Handle different input types
+if [[ -z "$URL" ]]; then
+    # No argument: use current PR
+    echo "Checking current PR's CircleCI checks..." >&2
+    PR_NUMBER=$(gh pr view --json number -q .number 2>/dev/null || echo "")
+    
+    if [[ -z "$PR_NUMBER" ]]; then
+        echo "Error: No PR found for current branch" >&2
+        exit 1
+    fi
+    
+    URLS=$(get_circleci_urls "$PR_NUMBER" "all")
+elif [[ "$URL" == "failed" ]]; then
+    # Special keyword: get all failed checks
+    echo "Checking failed CircleCI checks from current PR..." >&2
+    PR_NUMBER=$(gh pr view --json number -q .number 2>/dev/null || echo "")
+    
+    if [[ -z "$PR_NUMBER" ]]; then
+        echo "Error: No PR found for current branch" >&2
+        exit 1
+    fi
+    
+    URLS=$(get_circleci_urls "$PR_NUMBER" "failed")
+elif [[ "$URL" =~ ^[0-9]+$ ]]; then
+    # PR number provided
+    echo "Checking PR #$URL CircleCI checks..." >&2
+    URLS=$(get_circleci_urls "$URL" "all")
+elif [[ "$URL" =~ ^https?:// ]]; then
+    # Direct URL provided
+    URLS="$URL"
+else
+    echo "Error: Invalid argument '$URL'" >&2
+    echo "Use 'gh circleci-logs --help' for usage" >&2
+    exit 1
+fi
+
+# Check if we found any URLs
+if [[ -z "$URLS" ]]; then
+    echo "No CircleCI checks found" >&2
+    exit 0
+fi
+
+# Process each URL
+FIRST=true
+echo "$URLS" | while read -r url; do
+    if [[ -z "$url" ]]; then
+        continue
+    fi
+    
+    if [[ "$FIRST" == "false" ]]; then
+        echo ""
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        echo ""
+    fi
+    FIRST=false
+    
+    echo "📍 Fetching logs from: $url" >&2
+    circleci-logs "${ARGS[@]}" "$url"
+done
