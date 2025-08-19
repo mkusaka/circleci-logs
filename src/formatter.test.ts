@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach, type MockInstance } from 'vitest';
 import { printHuman, printJson, checkForErrors } from './formatter.js';
 import type { LogSegment } from './types.js';
 import chalk from 'chalk';
@@ -7,8 +7,8 @@ import chalk from 'chalk';
 chalk.level = 1;
 
 describe('printHuman', () => {
-  let consoleLogSpy: any;
-  let stdoutWriteSpy: any;
+  let consoleLogSpy: MockInstance;
+  let stdoutWriteSpy: MockInstance;
 
   beforeEach(() => {
     consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
@@ -123,7 +123,7 @@ describe('printHuman', () => {
 });
 
 describe('printJson', () => {
-  let consoleLogSpy: any;
+  let consoleLogSpy: MockInstance;
 
   beforeEach(() => {
     consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
@@ -182,7 +182,7 @@ describe('printJson', () => {
 
     printJson(segments);
 
-    const output = consoleLogSpy.mock.calls[0][0];
+    const output = consoleLogSpy.mock.calls[0]?.[0];
     const parsed = JSON.parse(output);
 
     expect(parsed[0].action.has_output).toBe(true);

@@ -1,35 +1,22 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { spawn } from 'child_process';
-import { join } from 'path';
+import { describe, it, expect, vi } from 'vitest';
+import type { LogSegment } from './types.js';
 
 describe('CLI Integration Tests', () => {
-  const cliPath = join(process.cwd(), 'dist', 'index.js');
-  let consoleErrorSpy: any;
-  let consoleLogSpy: any;
-
-  beforeEach(() => {
-    consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-    consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
-  });
-
-  afterEach(() => {
-    vi.restoreAllMocks();
-  });
 
   describe('--verbose option', () => {
     it('should parse verbose option correctly', async () => {
       // Since we're importing the program, we can test the option is registered
-      const { program } = await import('./index');
-      const verboseOption = program.options.find((opt: any) => opt.long === '--verbose');
+      const { program } = await import('./index.js');
+      const verboseOption = program.options.find(opt => opt.long === '--verbose');
       expect(verboseOption).toBeDefined();
-      expect(verboseOption.description).toContain('verbose');
+      expect(verboseOption?.description).toContain('verbose');
     });
   });
 
   describe('Empty output handling', () => {
     it('should handle empty segments without errors', async () => {
       // Import the relevant functions for testing
-      const { printHuman } = await import('./formatter');
+      const { printHuman } = await import('./formatter.js');
 
       // Mock console.log to capture output
       const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
@@ -49,10 +36,8 @@ describe('CLI Integration Tests', () => {
 
   describe('CLI Options Types', () => {
     it('should have verbose property in CLIOptions interface', async () => {
-      const types = await import('./types');
-
       // This is a compile-time check, but we can verify the type exists
-      const mockOptions: types.CLIOptions = {
+      const mockOptions = {
         errorsOnly: false,
         json: false,
         failOnError: false,
@@ -99,7 +84,7 @@ describe('Verbose Mode Behavior', () => {
 
 describe('Empty Segments Handling', () => {
   it('should handle empty segments array gracefully', () => {
-    const segments: any[] = [];
+    const segments: LogSegment[] = [];
 
     // Test that empty segments don't cause errors
     expect(() => {
@@ -107,13 +92,13 @@ describe('Empty Segments Handling', () => {
         // This is what the code does
         return 'No output found';
       }
+      return 'Has output';
     }).not.toThrow();
   });
 
   it('should detect when all actions are filtered out', () => {
     const actions = [{ status: 'success' }, { status: 'success' }];
 
-    const errorsOnly = true;
     const filtered = actions.filter((a) => a.status !== 'success');
 
     expect(filtered).toHaveLength(0);

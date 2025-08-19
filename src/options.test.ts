@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import type { CLIOptions } from './types';
+import type { CLIOptions } from './types.js';
 
 describe('CLI Options', () => {
   describe('verbose option', () => {
