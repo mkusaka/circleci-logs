@@ -118,7 +118,9 @@ When using this tool with AI assistants (Claude, ChatGPT, etc.), you can use the
 #### Basic Usage
 ```
 I need to check CircleCI logs from a PR. The CircleCI URL is https://circleci.com/gh/myorg/myrepo/12345
-My CIRCLE_TOKEN is: [your-token]
+
+# Ensure CIRCLE_TOKEN is set in environment first:
+# export CIRCLE_TOKEN=your-token-here
 
 Please use circleci-logs to:
 1. Show me only the failed steps
@@ -128,7 +130,9 @@ Please use circleci-logs to:
 #### Debugging Failed CI
 ```
 My CI is failing at: https://app.circleci.com/pipelines/github/org/repo/123/workflows/abc/jobs/12345
-CIRCLE_TOKEN=[your-token]
+
+# Prerequisites: Set CIRCLE_TOKEN environment variable
+# export CIRCLE_TOKEN=your-token-here
 
 Using circleci-logs, please:
 1. Get all error logs with: circleci-logs --errors-only [URL]
@@ -139,13 +143,15 @@ Using circleci-logs, please:
 #### Automated Analysis
 ```
 Analyze this CircleCI job for common issues:
-URL: [CircleCI URL]
-Token: [CIRCLE_TOKEN]
+URL: https://circleci.com/gh/org/repo/12345
+
+# Note: Requires CIRCLE_TOKEN environment variable to be set
+# The user should set this before running: export CIRCLE_TOKEN=...
 
 Run these commands:
-1. circleci-logs --errors-only --token [TOKEN] [URL] | head -50
-2. circleci-logs --grep "ERROR|FAILED|FATAL" --token [TOKEN] [URL]
-3. circleci-logs --json --token [TOKEN] [URL] | jq '.[] | select(.action.status != "success")'
+1. circleci-logs --errors-only "[URL]" | head -50
+2. circleci-logs --grep "ERROR|FAILED|FATAL" "[URL]"
+3. circleci-logs --json "[URL]" | jq '.[] | select(.action.status != "success")'
 
 Then summarize:
 - What steps failed?
@@ -155,11 +161,15 @@ Then summarize:
 
 ### Tips for LLM Integration
 
-1. **Always provide your CIRCLE_TOKEN** - The tool requires authentication
+1. **Set CIRCLE_TOKEN as environment variable** - Never include tokens directly in prompts
+   ```bash
+   export CIRCLE_TOKEN=your-token-here  # Set this once in your terminal
+   ```
 2. **Use --json for structured analysis** - Easier for LLMs to parse and analyze
 3. **Combine with jq** - For complex JSON filtering and analysis
 4. **Use --errors-only first** - To quickly identify problem areas
 5. **Use --grep with patterns** - To search for specific error types
+6. **Alternative: Use --token flag only when necessary** - If you must pass token inline, use the --token flag instead of environment variable
 
 ### Security Note
 
