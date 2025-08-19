@@ -5,7 +5,7 @@
   "main": "dist/index.js",
   "type": "module",
   "bin": {
-    "circleci-logs": "./dist/index.js"
+    "circleci-logs": "./dist/cli.js"
   },
   "man": "./man/circleci-logs.1",
   "engines": {
@@ -13,7 +13,6 @@
   },
   "scripts": {
     "build": "tsc",
-    "postbuild": "tsx scripts/add-shebang.ts",
     "dev": "tsx src/index.ts",
     "start": "node dist/index.js",
     "test": "vitest run --passWithNoTests",

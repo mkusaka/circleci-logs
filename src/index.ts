@@ -1,5 +1,3 @@
-#!/usr/bin/env node
-
 import { Command } from 'commander';
 import chalk from 'chalk';
 import packageJson from '../package.json' with { type: 'json' };
@@ -117,21 +115,3 @@ program
       process.exit(1);
     }
   });
-
-// Export for testing/importing
-export function run() {
-  program.parse(process.argv);
-
-  // Show help if no arguments provided
-  if (process.argv.length === 2) {
-    program.help();
-  }
-}
-
-// Only run if this is the main module being executed
-// Check if running as generate-docs script
-const isGenerateDocs = process.argv[1]?.includes('generate-docs');
-
-if (!isGenerateDocs) {
-  run();
-}
