@@ -2,12 +2,11 @@ import { describe, it, expect, vi } from 'vitest';
 import type { LogSegment } from './types.js';
 
 describe('CLI Integration Tests', () => {
-
   describe('--verbose option', () => {
     it('should parse verbose option correctly', async () => {
       // Since we're importing the program, we can test the option is registered
       const { program } = await import('./index.js');
-      const verboseOption = program.options.find(opt => opt.long === '--verbose');
+      const verboseOption = program.options.find((opt) => opt.long === '--verbose');
       expect(verboseOption).toBeDefined();
       expect(verboseOption?.description).toContain('verbose');
     });

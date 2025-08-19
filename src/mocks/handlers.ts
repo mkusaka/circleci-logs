@@ -43,7 +43,8 @@ export const handlers = [
               end_time: '2024-01-01T10:00:32Z',
               exit_code: null,
               has_output: true,
-              output_url: 'https://circle-production-action-output.s3.amazonaws.com/abc123-test-output?X-Amz-Algorithm=AWS4-HMAC-SHA256',
+              output_url:
+                'https://circle-production-action-output.s3.amazonaws.com/abc123-test-output?X-Amz-Algorithm=AWS4-HMAC-SHA256',
               truncated: false,
               failed: null,
               infrastructure_fail: null,
@@ -70,7 +71,8 @@ export const handlers = [
               end_time: '2024-01-01T10:00:34Z',
               exit_code: 0,
               has_output: true,
-              output_url: 'https://circle-production-action-output.s3.amazonaws.com/def456-test-output?X-Amz-Algorithm=AWS4-HMAC-SHA256',
+              output_url:
+                'https://circle-production-action-output.s3.amazonaws.com/def456-test-output?X-Amz-Algorithm=AWS4-HMAC-SHA256',
               truncated: false,
               failed: null,
               infrastructure_fail: null,
@@ -97,7 +99,8 @@ export const handlers = [
               end_time: '2024-01-01T10:00:40Z',
               exit_code: 1,
               has_output: true,
-              output_url: 'https://circle-production-action-output.s3.amazonaws.com/ghi789-test-output?X-Amz-Algorithm=AWS4-HMAC-SHA256',
+              output_url:
+                'https://circle-production-action-output.s3.amazonaws.com/ghi789-test-output?X-Amz-Algorithm=AWS4-HMAC-SHA256',
               truncated: false,
               failed: true,
               infrastructure_fail: null,
@@ -195,7 +198,8 @@ export const errorHandlers = {
                 status: 'failed',
                 exit_code: 1,
                 has_output: true,
-                output_url: 'https://circle-production-action-output.s3.amazonaws.com/failed-test-output',
+                output_url:
+                  'https://circle-production-action-output.s3.amazonaws.com/failed-test-output',
                 failed: true,
               },
             ],
@@ -205,3 +209,4 @@ export const errorHandlers = {
     },
   ),
 };
+

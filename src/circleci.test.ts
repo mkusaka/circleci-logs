@@ -29,10 +29,11 @@ describe('parseJobUrl', () => {
   });
 
   it('should parse new CircleCI app URL format', () => {
-    const url = 'https://app.circleci.com/pipelines/github/org-name/repo-name/123/workflows/abc/jobs/456';
+    const url =
+      'https://app.circleci.com/pipelines/github/org-name/repo-name/123/workflows/abc/jobs/456';
     const result = parseJobUrl(url);
     expect(result).toEqual({
-      vcsAbbrev: 'gh',  // Converted from 'github' to 'gh'
+      vcsAbbrev: 'gh', // Converted from 'github' to 'gh'
       org: 'org-name',
       repo: 'repo-name',
       jobNumber: '456',
@@ -40,10 +41,11 @@ describe('parseJobUrl', () => {
   });
 
   it('should parse new CircleCI app URL format (bitbucket)', () => {
-    const url = 'https://app.circleci.com/pipelines/bitbucket/my-org/my-repo/789/workflows/def/jobs/101112';
+    const url =
+      'https://app.circleci.com/pipelines/bitbucket/my-org/my-repo/789/workflows/def/jobs/101112';
     const result = parseJobUrl(url);
     expect(result).toEqual({
-      vcsAbbrev: 'bb',  // Converted from 'bitbucket' to 'bb'
+      vcsAbbrev: 'bb', // Converted from 'bitbucket' to 'bb'
       org: 'my-org',
       repo: 'my-repo',
       jobNumber: '101112',
@@ -97,8 +99,10 @@ describe('parseJobUrl', () => {
 describe('fetchJson', () => {
   it('should fetch and parse JSON successfully', async () => {
     // MSW will intercept this request and return mock data
-    const result = await fetchJson('https://circleci.com/api/v1.1/project/gh/test-org/test-repo/12345');
-    
+    const result = await fetchJson(
+      'https://circleci.com/api/v1.1/project/gh/test-org/test-repo/12345',
+    );
+
     expect(result).toHaveProperty('vcs_url');
     expect(result).toHaveProperty('build_num', 12345);
     expect(result).toHaveProperty('status', 'success');
@@ -156,28 +160,32 @@ describe('fetchJobDetails', () => {
     // Create a handler to verify the Circle-Token header
     let capturedToken: string | null = null;
     server.use(
-      http.get('https://circleci.com/api/v1.1/project/gh/test-org/test-repo/12345', ({ request }) => {
-        capturedToken = request.headers.get('Circle-Token');
-        // Return the default mock response
-        return HttpResponse.json({
-          vcs_url: 'https://github.com/test-org/test-repo',
-          build_num: 12345,
-          status: 'success',
-          steps: [
-            {
-              name: 'Spin up environment',
-              actions: [
-                {
-                  name: 'Spin up environment',
-                  status: 'success',
-                  has_output: true,
-                  output_url: 'https://circle-production-action-output.s3.amazonaws.com/test-output',
-                },
-              ],
-            },
-          ],
-        });
-      }),
+      http.get(
+        'https://circleci.com/api/v1.1/project/gh/test-org/test-repo/12345',
+        ({ request }) => {
+          capturedToken = request.headers.get('Circle-Token');
+          // Return the default mock response
+          return HttpResponse.json({
+            vcs_url: 'https://github.com/test-org/test-repo',
+            build_num: 12345,
+            status: 'success',
+            steps: [
+              {
+                name: 'Spin up environment',
+                actions: [
+                  {
+                    name: 'Spin up environment',
+                    status: 'success',
+                    has_output: true,
+                    output_url:
+                      'https://circle-production-action-output.s3.amazonaws.com/test-output',
+                  },
+                ],
+              },
+            ],
+          });
+        },
+      ),
     );
 
     const result = await fetchJobDetails(jobInfo, 'test-token-12345');
@@ -199,7 +207,9 @@ describe('fetchJobDetails', () => {
       jobNumber: '12345',
     };
 
-    await expect(fetchJobDetails(jobInfo, 'invalid-token')).rejects.toThrow('HTTP 401 Unauthorized');
+    await expect(fetchJobDetails(jobInfo, 'invalid-token')).rejects.toThrow(
+      'HTTP 401 Unauthorized',
+    );
   });
 
   it('should handle failed job response', async () => {
@@ -223,7 +233,9 @@ describe('fetchJobDetails', () => {
 
 describe('fetchActionOutput', () => {
   it('should fetch action output successfully', async () => {
-    const result = await fetchActionOutput('https://circle-production-action-output.s3.amazonaws.com/test-output');
+    const result = await fetchActionOutput(
+      'https://circle-production-action-output.s3.amazonaws.com/test-output',
+    );
 
     expect(result).toBeInstanceOf(Array);
     expect(result.length).toBeGreaterThan(0);
@@ -239,7 +251,9 @@ describe('fetchActionOutput', () => {
       }),
     );
 
-    const result = await fetchActionOutput('https://circle-production-action-output.s3.amazonaws.com/empty-output');
+    const result = await fetchActionOutput(
+      'https://circle-production-action-output.s3.amazonaws.com/empty-output',
+    );
 
     expect(result).toEqual([]);
   });
@@ -252,8 +266,10 @@ describe('fetchActionOutput', () => {
     );
 
     // fetchActionOutput catches errors and returns error message
-    const result = await fetchActionOutput('https://circle-production-action-output.s3.amazonaws.com/forbidden-output');
-    
+    const result = await fetchActionOutput(
+      'https://circle-production-action-output.s3.amazonaws.com/forbidden-output',
+    );
+
     expect(result).toHaveLength(1);
     expect(result[0]?.message).toContain('failed to fetch output_url');
     expect(result[0]?.message).toContain('403 Forbidden');
@@ -270,10 +286,13 @@ describe('fetchActionOutput', () => {
     );
 
     // fetchActionOutput catches errors and returns error message
-    const result = await fetchActionOutput('https://circle-production-action-output.s3.amazonaws.com/malformed-output');
-    
+    const result = await fetchActionOutput(
+      'https://circle-production-action-output.s3.amazonaws.com/malformed-output',
+    );
+
     expect(result).toHaveLength(1);
     expect(result[0]?.message).toContain('failed to fetch output_url');
     expect(result[0]?.message).toMatch(/not valid JSON|Unexpected token/);
   });
 });
+

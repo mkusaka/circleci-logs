@@ -168,48 +168,73 @@ This tool uses CircleCI API v1.1 to fetch job details. The flow is:
 
 When using this tool with AI assistants (Claude, ChatGPT, etc.), you can use these prompts:
 
-#### Basic Usage
+#### Primary Use Case: Check Failed PR CI
 ```
-I need to check CircleCI logs from a PR. The CircleCI URL is https://circleci.com/gh/myorg/myrepo/12345
+Check if my PR has any failing CircleCI checks and show me the error logs.
 
-# Ensure CIRCLE_TOKEN is set in environment first:
-# export CIRCLE_TOKEN=your-token-here
+# Prerequisites: CIRCLE_TOKEN must be set in environment
+# User should run: export CIRCLE_TOKEN=your-token-here
 
-Please use circleci-logs to:
-1. Show me only the failed steps
-2. Search for any ERROR messages in the logs
-```
-
-#### Debugging Failed CI
-```
-My CI is failing at: https://app.circleci.com/pipelines/github/org/repo/123/workflows/abc/jobs/12345
-
-# Prerequisites: Set CIRCLE_TOKEN environment variable
-# export CIRCLE_TOKEN=your-token-here
-
-Using circleci-logs, please:
-1. Get all error logs with: circleci-logs --errors-only [URL]
-2. Search for timeout issues: circleci-logs --grep "timeout|timed out" [URL]
-3. Get the full JSON output for analysis: circleci-logs --json [URL]
+Steps:
+1. First check PR status: gh pr checks --json state,name,link
+2. If there are FAILURE states, get their logs:
+   gh pr checks --json state,link,name -q '.[] | select(.state=="FAILURE") | select(.name | contains("circleci")) | .link' | xargs -n1 circleci-logs --errors-only
 ```
 
-#### Automated Analysis
+#### Quick Debug Failed CI
 ```
-Analyze this CircleCI job for common issues:
+My PR CI is failing. Show me what's wrong.
+
+# Prerequisites: CIRCLE_TOKEN environment variable must be set
+
+Run:
+gh pr checks --json state,link,name -q '.[] | select(.state=="FAILURE") | .link' | head -1 | xargs circleci-logs --errors-only
+
+This will show error logs from the first failed check.
+```
+
+#### Comprehensive CI Analysis
+```
+Analyze all failed CircleCI checks in my PR and summarize the issues.
+
+# Prerequisites: CIRCLE_TOKEN environment variable required
+
+Commands to run:
+1. List all failed checks:
+   gh pr checks --json state,name,link -q '.[] | select(.state=="FAILURE")'
+
+2. Get error logs from each failed CircleCI check:
+   gh pr checks --json state,link,name -q '.[] | select(.state=="FAILURE") | select(.name | contains("circleci")) | .link' | while read url; do
+     echo "=== Checking $url ==="
+     circleci-logs --errors-only "$url" | head -30
+   done
+
+3. Search for specific error patterns:
+   # For critical errors only (less noise):
+   gh pr checks --json state,link,name -q '.[] | select(.state=="FAILURE") | select(.name | contains("circleci")) | .link' | head -1 | xargs circleci-logs --grep "ERROR|FAILED|FATAL"
+   
+   # For comprehensive error search (may include more context):
+   gh pr checks --json state,link,name -q '.[] | select(.state=="FAILURE") | select(.name | contains("circleci")) | .link' | head -1 | xargs circleci-logs --grep -i "error|fail|timeout"
+
+Then provide:
+- Summary of which checks failed
+- Key error messages found
+- Suggested fixes
+```
+
+#### Direct URL Analysis
+```
+Analyze this specific CircleCI job that's failing:
 URL: https://circleci.com/gh/org/repo/12345
 
-# Note: Requires CIRCLE_TOKEN environment variable to be set
-# The user should set this before running: export CIRCLE_TOKEN=...
+# Prerequisites: CIRCLE_TOKEN must be set
 
-Run these commands:
+Run these diagnostics:
 1. circleci-logs --errors-only "[URL]" | head -50
-2. circleci-logs --grep "ERROR|FAILED|FATAL" "[URL]"
-3. circleci-logs --json "[URL]" | jq '.[] | select(.action.status != "success")'
+2. circleci-logs --grep "ERROR|FAILED|FATAL|error|failed|timeout" "[URL]" 
+3. circleci-logs --verbose "[URL]" 2>&1 | grep -E "Job status|Steps:"
 
-Then summarize:
-- What steps failed?
-- What were the error messages?
-- What is the likely root cause?
+Identify the root cause and suggest fixes.
 ```
 
 ### Tips for LLM Integration
