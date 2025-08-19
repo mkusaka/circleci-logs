@@ -212,6 +212,13 @@ Analyze all failed CircleCI checks in my PR and summarize the issues.
 
 # Prerequisites: CIRCLE_TOKEN environment variable required
 
+# Basic circleci-logs usage:
+- circleci-logs <URL>                   # Fetch all logs from a CircleCI job
+- circleci-logs --errors-only <URL>     # Show only failed steps
+- circleci-logs --grep "pattern" <URL>  # Filter logs with regex
+- circleci-logs --json <URL>            # Output as JSON
+- circleci-logs --verbose <URL>         # Include debug information
+
 Commands to run:
 1. List all failed checks:
    gh pr checks --json state,name,link -q '.[] | select(.state=="FAILURE")'
