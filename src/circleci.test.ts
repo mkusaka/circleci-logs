@@ -295,4 +295,3 @@ describe('fetchActionOutput', () => {
     expect(result[0]?.message).toMatch(/not valid JSON|Unexpected token/);
   });
 });
-
