@@ -118,9 +118,44 @@ gh pr checks --json name,link -q '.[] | select(.name | contains("build")) | .lin
   xargs -n1 circleci-logs
 ```
 
+#### Branch-based CI Monitoring
+
+Monitor CI status for the current branch (without a PR):
+
+```bash
+# Get the latest workflow runs for current branch
+gh run list --branch $(git branch --show-current) --json databaseId,status,conclusion,name | \
+  jq -r '.[] | select(.conclusion=="failure") | .databaseId' | \
+  while read run_id; do
+    # Get job URLs from the failed workflow
+    gh run view $run_id --json jobs | \
+      jq -r '.jobs[] | select(.conclusion=="failure") | .url' | \
+      while read job_url; do
+        circleci-logs --errors-only "$job_url"
+      done
+  done
+
+# Monitor ongoing CI for current branch
+watch -n 30 'gh run list --branch $(git branch --show-current) --limit 5'
+
+# Get CircleCI logs for specific workflow run on branch
+gh run view --json jobs | \
+  jq -r '.jobs[] | select(.name | contains("test")) | .url' | \
+  xargs -n1 circleci-logs
+
+# Check all recent failures on a specific branch
+gh run list --branch feature-branch --status failure --json databaseId | \
+  jq -r '.[].databaseId' | \
+  while read id; do
+    gh run view $id --json jobs | \
+      jq -r '.jobs[] | select(.conclusion=="failure") | .url' | \
+      xargs -n1 circleci-logs --errors-only
+  done
+```
+
 #### Check States Reference
 
-GitHub PR checks can have these states:
+GitHub PR/workflow checks can have these states:
 - `SUCCESS` - Check passed
 - `FAILURE` - Check failed
 - `PENDING` - Check is still running
@@ -255,6 +290,72 @@ Run these diagnostics:
 3. circleci-logs --verbose "[URL]" 2>&1 | grep -E "Job status|Steps:"
 
 Identify the root cause and suggest fixes.
+```
+
+#### Branch CI Monitoring (Without PR)
+```
+Monitor and debug CI failures on my current branch (no PR yet).
+
+# Prerequisites: CIRCLE_TOKEN environment variable required
+
+# Basic circleci-logs usage:
+- circleci-logs <URL>                   # Fetch all logs from a CircleCI job
+- circleci-logs --errors-only <URL>     # Show only failed steps
+- circleci-logs --grep "pattern" <URL>  # Filter logs with regex
+- circleci-logs --verbose <URL>         # Include debug information
+
+Commands for branch monitoring:
+1. List recent workflow runs on current branch:
+   gh run list --branch $(git branch --show-current) --limit 10
+
+2. Get failed job logs from latest workflow:
+   gh run list --branch $(git branch --show-current) --status failure --limit 1 --json databaseId | \
+     jq -r '.[0].databaseId' | \
+     xargs -I{} gh run view {} --json jobs | \
+     jq -r '.jobs[] | select(.conclusion=="failure") | .url' | \
+     xargs -n1 circleci-logs --errors-only
+
+3. Monitor specific workflow by name:
+   gh run list --branch $(git branch --show-current) --workflow "CI" --limit 1 --json databaseId | \
+     jq -r '.[0].databaseId' | \
+     xargs -I{} gh run view {} --json jobs | \
+     jq -r '.jobs[].url' | \
+     xargs -n1 circleci-logs
+
+4. Watch CI status in real-time:
+   watch -n 30 'gh run list --branch $(git branch --show-current) --limit 5'
+
+Then analyze:
+- Which jobs are failing
+- Common error patterns across failures
+- Potential fixes based on error messages
+```
+
+#### Branch Push Workflow
+```
+I just pushed to my branch and want to check if CI passes.
+
+# Prerequisites: CIRCLE_TOKEN set in environment
+
+Quick check workflow:
+1. Wait for workflows to start:
+   gh run watch --exit-status
+
+2. If failed, get error logs:
+   gh run list --branch $(git branch --show-current) --status failure --limit 1 --json databaseId | \
+     jq -r '.[0].databaseId' | \
+     xargs -I{} gh run view {} --log-failed
+
+3. For CircleCI specific logs with more detail:
+   gh run view --json jobs | \
+     jq -r '.jobs[] | select(.conclusion=="failure") | .url' | \
+     xargs -n1 circleci-logs --errors-only --grep "ERROR|FAIL"
+
+4. Check if it's a flaky test:
+   # Re-run failed jobs
+   gh run rerun --failed
+
+Monitor until all checks pass.
 ```
 
 ### Tips for LLM Integration
