@@ -1,0 +1,62 @@
+[
+  {
+    "name": "Type: Release",
+    "color": "0e8a16",
+    "description": "Release PR"
+  },
+  {
+    "name": "Type: Bug",
+    "color": "d73a4a",
+    "description": "Something isn't working"
+  },
+  {
+    "name": "Type: Feature",
+    "color": "a2eeef",
+    "description": "New feature or request"
+  },
+  {
+    "name": "Type: Documentation",
+    "color": "0075ca",
+    "description": "Improvements or additions to documentation"
+  },
+  {
+    "name": "Type: Maintenance",
+    "color": "ffd700",
+    "description": "Maintenance, refactoring, or chore work"
+  },
+  {
+    "name": "Type: Security",
+    "color": "ee0701",
+    "description": "Security related changes"
+  },
+  {
+    "name": "Priority: High",
+    "color": "d93f0b",
+    "description": "High priority"
+  },
+  {
+    "name": "Priority: Medium",
+    "color": "fbca04",
+    "description": "Medium priority"
+  },
+  {
+    "name": "Priority: Low",
+    "color": "0e8a16",
+    "description": "Low priority"
+  },
+  {
+    "name": "Status: In Progress",
+    "color": "1d76db",
+    "description": "Work in progress"
+  },
+  {
+    "name": "Status: Review Needed",
+    "color": "5319e7",
+    "description": "Review needed"
+  },
+  {
+    "name": "Status: Blocked",
+    "color": "d93f0b",
+    "description": "Blocked by something"
+  }
+]
