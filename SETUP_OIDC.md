@@ -8,28 +8,7 @@ This guide explains how to set up npm Trusted Publishing with OIDC for the circl
 - Repository admin access
 - npm CLI v11.5.1 or later (required for OIDC)
 
-## 1. GitHub Repository Settings
-
-### Enable GitHub Actions to create PRs
-
-1. Go to Settings → Actions → General
-2. Scroll to "Workflow permissions"
-3. Enable "Allow GitHub Actions to create and approve pull requests"
-4. Save changes
-
-### Set up GitHub Labels
-
-The release workflow uses the `Type: Release` label. You can create labels manually or use the included labels.json:
-
-```bash
-# Using GitHub CLI
-gh label create "Type: Release" --color "0e8a16" --description "Release PR"
-
-# Or create all labels from the JSON file
-cat .github/labels.json | jq -r '.[] | @sh "gh label create \(.name) --color \(.color) --description \(.description)"' | sh
-```
-
-## 2. npm Trusted Publisher Configuration
+## npm Trusted Publisher Configuration
 
 ### Configure Trusted Publisher on npmjs.com
 
@@ -56,37 +35,37 @@ After setting up Trusted Publisher:
 2. Enable "Require two-factor authentication and disallow tokens"
 3. This prevents token-based publishing and allows only OIDC or interactive publishing
 
-## 3. Release Workflow
+## Release Workflow
 
 ### Creating a Release
 
-1. **Create a Release PR**:
+1. **Update package.json version**:
    ```bash
-   # Trigger the workflow from GitHub Actions UI
-   # Go to Actions → Create Release PR → Run workflow
-   # Select version type: patch, minor, or major
+   # Update version in package.json
+   npm version patch  # or minor, major
    ```
 
-   Or using GitHub CLI:
+2. **Commit and push the version change**:
    ```bash
-   gh workflow run create-release-pr.yml -f version=patch
+   git add package.json package-lock.json
+   git commit -m "chore: release v$(node -p "require('./package.json').version")"
+   git push origin main
    ```
 
-2. **Review the Release PR**:
-   - The PR will be created as a draft with auto-generated release notes
-   - Edit the PR body to customize release notes if needed
-   - The PR body will become the GitHub Release notes
-
-3. **Merge the Release PR**:
-   - Once ready, mark the PR as ready for review
-   - Merge the PR to trigger the release workflow
+3. **Create and push a tag**:
+   ```bash
+   # Create a tag matching the version
+   git tag v$(node -p "require('./package.json').version")
+   git push origin v$(node -p "require('./package.json').version")
+   ```
 
 4. **Automatic Publishing**:
-   - The release workflow will:
+   - The release workflow will automatically:
+     - Verify tag matches package.json version
      - Build and test the package
      - Publish to npm with provenance
+     - Generate release notes from commits
      - Create a GitHub Release
-     - Comment on the PR with release results
 
 ### Manual Release (if needed)
 
@@ -130,21 +109,21 @@ https://github.com/mkusaka/circleci-logs/releases
 
 1. **"npm ERR! code ENEEDAUTH"**
    - Ensure Trusted Publisher is configured correctly
-   - Check workflow filename matches exactly
+   - Check workflow filename matches exactly (`release.yml`)
    - Verify npm version is 11.5.1 or later
 
-2. **"Error: Process completed with exit code 1"**
+2. **"Error: package.json version doesn't match tag version"**
+   - Ensure package.json version matches the tag (without 'v' prefix)
+   - Update package.json before creating the tag
+
+3. **"Error: Process completed with exit code 1"**
    - Check GitHub Actions logs for detailed error
    - Ensure all tests pass
    - Verify build completes successfully
 
-3. **Release PR not created**
-   - Ensure "Allow GitHub Actions to create and approve pull requests" is enabled
-   - Check GitHub Actions permissions
-
-4. **Merge doesn't trigger release**
-   - Ensure PR has `Type: Release` label
-   - Check that PR was merged (not closed)
+4. **Release doesn't trigger**
+   - Ensure tag name starts with 'v' (e.g., v1.0.0)
+   - Check that tag was pushed to the correct branch
 
 ### Security Considerations
 
