@@ -5,6 +5,14 @@ import { CLIOptions, LogSegment, LogLine } from './types.js';
 import { parseJobUrl, fetchJobDetails, fetchActionOutput } from './circleci.js';
 import { filterActions, filterLines } from './filters.js';
 import { printHuman, printJson, checkForErrors } from './formatter.js';
+import {
+  fetchTestResults,
+  filterTestResults,
+  calculateTestSummary,
+  hasFailedTests,
+  TestOptions,
+} from './tests-api.js';
+import { printTestResults, printTestResultsJson } from './tests-formatter.js';
 
 export const program = new Command();
 
@@ -19,6 +27,10 @@ program
   .option('--fail-on-error', 'Exit with code 1 if there are error actions', false)
   .option('--token <token>', 'CircleCI Personal Token (defaults to CIRCLE_TOKEN env)')
   .option('--verbose', 'Show verbose output including debug information', false)
+  .option('--tests', 'Fetch and display test results from CircleCI v2 API', false)
+  .option('--tests-json', 'Output test results as JSON', false)
+  .option('--failed-only', 'Only show failed tests (for --tests)', false)
+  .option('--fail-on-test-failure', 'Exit with code 1 if there are failed tests', false)
   .action(async (url: string) => {
     try {
       const opts = program.opts<Partial<CLIOptions>>();
@@ -48,6 +60,51 @@ program
 
       if (options.verbose) {
         console.error(chalk.gray(`Parsed URL: ${JSON.stringify(jobInfo)}`));
+      }
+
+      // Check if we should fetch test results instead
+      const testOpts = opts as any;
+      if (testOpts.tests || testOpts.testsJson) {
+        const testOptions: TestOptions = {
+          tests: testOpts.tests,
+          testsJson: testOpts.testsJson,
+          failedOnly: testOpts.failedOnly,
+          failOnTestFailure: testOpts.failOnTestFailure,
+          grep: opts.grep ? new RegExp(opts.grep) : null,
+        };
+
+        if (options.verbose) {
+          console.error(chalk.gray('Fetching test results from v2 API...'));
+        }
+
+        const testResults = await fetchTestResults(jobInfo, token);
+
+        if (options.verbose) {
+          console.error(chalk.gray(`Found ${testResults.length} test results`));
+        }
+
+        const filteredTests = filterTestResults(testResults, testOptions);
+        const summary = calculateTestSummary(filteredTests);
+
+        if (testOptions.testsJson) {
+          printTestResultsJson(filteredTests, summary);
+        } else {
+          if (filteredTests.length === 0) {
+            console.log(chalk.yellow('No test results found. This could mean:'));
+            console.log('- The job has no test results stored');
+            console.log('- Tests were not configured to store results in CircleCI');
+            console.log('- All tests were filtered out (try without --failed-only)');
+            console.log('\nMake sure your CircleCI config uses store_test_results');
+          } else {
+            printTestResults(filteredTests, summary, { failedOnly: testOptions.failedOnly });
+          }
+        }
+
+        if (testOptions.failOnTestFailure && hasFailedTests(filteredTests)) {
+          process.exit(1);
+        }
+
+        return;
       }
 
       // Fetch job details from CircleCI API

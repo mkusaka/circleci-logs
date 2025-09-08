@@ -85,6 +85,49 @@ circleci-logs --fail-on-error "https://circleci.com/gh/org/repo/12345"
 
 # Use a specific token (instead of env variable)
 circleci-logs --token "your-token" "https://circleci.com/gh/org/repo/12345"
+
+# Show verbose output for debugging
+circleci-logs --verbose "https://circleci.com/gh/org/repo/12345"
+```
+
+### Test Results (v2 API)
+
+Fetch and display test results from CircleCI jobs (requires test results to be stored via `store_test_results` in your CircleCI config):
+
+```bash
+# Show all test results
+circleci-logs --tests "https://circleci.com/gh/org/repo/12345"
+
+# Show only failed tests
+circleci-logs --tests --failed-only "https://circleci.com/gh/org/repo/12345"
+
+# Output test results as JSON
+circleci-logs --tests-json "https://circleci.com/gh/org/repo/12345"
+
+# Filter tests by name/class/file with regex
+circleci-logs --tests --grep "UserController" "https://circleci.com/gh/org/repo/12345"
+
+# Exit with code 1 if any tests failed
+circleci-logs --tests --fail-on-test-failure "https://circleci.com/gh/org/repo/12345"
+
+# Combine with verbose mode for debugging
+circleci-logs --tests --verbose --failed-only "https://circleci.com/gh/org/repo/12345"
+```
+
+Example output:
+```
+## [Test Results] Test Suite  [failed]
+
+✗ FAIL: spec/models/internal_api/clinics_operation/show_staffs/command_spec.rb
+  Class: spec.models.internal_api.clinics_operation.show_staffs.command_spec
+  Test:  InternalApi::ClinicsOperation::ShowStaffs::Command.call when request is invalid id raises an error
+  Time:  0.437s
+  
+  Failure/Error: expect { described_class.call(params) }.to raise_error(InternalApi::Errors::ResourceNotFoundError)
+  
+  expected InternalApi::Errors::ResourceNotFoundError, got #<NameError: uninitialized constant...
+
+Summary: 45 passed, 2 failed, 3 skipped (12.345s)
 ```
 
 ### Integration with GitHub CLI
