@@ -1,8 +1,8 @@
-# circleci-logs(1) -- Fetch CircleCI job step logs from a gh pr checks URL
+# circleci-logs(1) -- Fetch CircleCI job logs and test results
 
 ## SYNOPSIS
 
-`circleci-logs` [OPTIONS] URL
+`circleci-logs` [OPTIONS] [URL]
 
 ## DESCRIPTION
 

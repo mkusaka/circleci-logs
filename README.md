@@ -90,28 +90,30 @@ circleci-logs --token "your-token" "https://circleci.com/gh/org/repo/12345"
 circleci-logs --verbose "https://circleci.com/gh/org/repo/12345"
 ```
 
-### Test Results (v2 API)
+### Subcommands
+
+#### `tests` - Fetch Test Results (v2 API)
 
 Fetch and display test results from CircleCI jobs (requires test results to be stored via `store_test_results` in your CircleCI config):
 
 ```bash
 # Show all test results
-circleci-logs --tests "https://circleci.com/gh/org/repo/12345"
+circleci-logs tests "https://circleci.com/gh/org/repo/12345"
 
 # Show only failed tests
-circleci-logs --tests --failed-only "https://circleci.com/gh/org/repo/12345"
+circleci-logs tests --failed-only "https://circleci.com/gh/org/repo/12345"
 
 # Output test results as JSON
-circleci-logs --tests-json "https://circleci.com/gh/org/repo/12345"
+circleci-logs tests --json "https://circleci.com/gh/org/repo/12345"
 
 # Filter tests by name/class/file with regex
-circleci-logs --tests --grep "UserController" "https://circleci.com/gh/org/repo/12345"
+circleci-logs tests --grep "UserController" "https://circleci.com/gh/org/repo/12345"
 
 # Exit with code 1 if any tests failed
-circleci-logs --tests --fail-on-test-failure "https://circleci.com/gh/org/repo/12345"
+circleci-logs tests --fail-on-test-failure "https://circleci.com/gh/org/repo/12345"
 
 # Combine with verbose mode for debugging
-circleci-logs --tests --verbose --failed-only "https://circleci.com/gh/org/repo/12345"
+circleci-logs tests --verbose --failed-only "https://circleci.com/gh/org/repo/12345"
 ```
 
 Example output:
@@ -246,11 +248,20 @@ pnpm run format
 
 ## API Details
 
-This tool uses CircleCI API v1.1 to fetch job details. The flow is:
+This tool uses both CircleCI API v1.1 and v2:
 
+### Logs (default command)
+Uses CircleCI API v1.1 to fetch job details:
 1. Parse the CircleCI job URL to extract org, repo, and job number
 2. Call `/api/v1.1/project/{vcs}/{org}/{repo}/{job_number}` with your CircleCI token
 3. For each step action with output, fetch logs from the `output_url` (signed URL, no auth required)
+4. Apply filters and format the output
+
+### Test Results (`tests` subcommand)
+Uses CircleCI API v2 to fetch test results:
+1. Parse the CircleCI job URL to extract org, repo, and job number
+2. Call `/api/v2/project/{vcs}/{org}/{repo}/{job_number}/tests` with your CircleCI token
+3. Handle pagination to fetch all test results
 4. Apply filters and format the output
 
 ## LLM Usage

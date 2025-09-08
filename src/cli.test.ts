@@ -12,6 +12,15 @@ describe('CLI Integration Tests', () => {
     });
   });
 
+  describe('subcommands', () => {
+    it('should have tests subcommand', async () => {
+      const { program } = await import('./index.js');
+      const testsCommand = program.commands.find((cmd) => cmd.name() === 'tests');
+      expect(testsCommand).toBeDefined();
+      expect(testsCommand?.description()).toContain('test results');
+    });
+  });
+
   describe('Empty output handling', () => {
     it('should handle empty segments without errors', async () => {
       // Import the relevant functions for testing
