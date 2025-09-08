@@ -5,21 +5,34 @@ import { CLIOptions, LogSegment, LogLine } from './types.js';
 import { parseJobUrl, fetchJobDetails, fetchActionOutput } from './circleci.js';
 import { filterActions, filterLines } from './filters.js';
 import { printHuman, printJson, checkForErrors } from './formatter.js';
+import { createTestsCommand } from './commands/tests.js';
 
 export const program = new Command();
 
 program
   .name('circleci-logs')
-  .description('Fetch CircleCI job step logs from a gh pr checks URL')
-  .version(packageJson.version)
-  .argument('<url>', 'CircleCI job URL')
+  .description('Fetch CircleCI job logs and test results')
+  .version(packageJson.version);
+
+// Add subcommands
+program.addCommand(createTestsCommand());
+
+// Default command for backward compatibility - handles logs when no subcommand is specified
+program
+  .argument('[url]', 'CircleCI job URL')
   .option('--errors-only', 'Only show actions with non-success status', false)
   .option('--grep <pattern>', 'Filter log lines with regex pattern')
   .option('--json', 'Output as structured JSON', false)
   .option('--fail-on-error', 'Exit with code 1 if there are error actions', false)
   .option('--token <token>', 'CircleCI Personal Token (defaults to CIRCLE_TOKEN env)')
   .option('--verbose', 'Show verbose output including debug information', false)
-  .action(async (url: string) => {
+  .action(async (url?: string) => {
+    // If no URL provided and no subcommand, show help
+    if (!url) {
+      program.outputHelp();
+      process.exit(0);
+    }
+
     try {
       const opts = program.opts<Partial<CLIOptions>>();
 
