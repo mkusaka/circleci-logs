@@ -13,12 +13,12 @@ afterAll(() => server.close());
 describe('Tests Subcommand', () => {
   it('should create tests command with correct options', () => {
     const testsCommand = createTestsCommand();
-    
+
     expect(testsCommand.name()).toBe('tests');
     expect(testsCommand.description()).toContain('test results');
-    
+
     // Check that all options are registered
-    const optionNames = testsCommand.options.map(opt => opt.long);
+    const optionNames = testsCommand.options.map((opt) => opt.long);
     expect(optionNames).toContain('--json');
     expect(optionNames).toContain('--failed-only');
     expect(optionNames).toContain('--grep');
@@ -68,16 +68,20 @@ describe('Tests Subcommand', () => {
     });
 
     const testsCommand = createTestsCommand();
-    
+
     // Set up test environment
     process.env.CIRCLE_TOKEN = 'test-token';
-    
+
     // Parse command with test URL
-    await testsCommand.parseAsync(['node', 'test', 'https://app.circleci.com/pipelines/github/owner/repo/1/workflows/abc/jobs/123']);
-    
+    await testsCommand.parseAsync([
+      'node',
+      'test',
+      'https://app.circleci.com/pipelines/github/owner/repo/1/workflows/abc/jobs/123',
+    ]);
+
     // Should have printed test results
     expect(logSpy).toHaveBeenCalled();
-    
+
     delete process.env.CIRCLE_TOKEN;
     logSpy.mockRestore();
     errorSpy.mockRestore();
@@ -108,16 +112,16 @@ describe('Tests Subcommand', () => {
 
     const testsCommand = createTestsCommand();
     process.env.CIRCLE_TOKEN = 'test-token';
-    
+
     await expect(
       testsCommand.parseAsync([
         'node',
         'test',
         'https://app.circleci.com/pipelines/github/owner/repo/1/workflows/abc/jobs/456',
         '--fail-on-test-failure',
-      ])
+      ]),
     ).rejects.toThrow('process.exit(1)');
-    
+
     delete process.env.CIRCLE_TOKEN;
     exitSpy.mockRestore();
   });
@@ -140,22 +144,22 @@ describe('Tests Subcommand', () => {
     );
 
     const logSpy = vi.spyOn(console, 'log');
-    
+
     const testsCommand = createTestsCommand();
     process.env.CIRCLE_TOKEN = 'test-token';
-    
+
     await testsCommand.parseAsync([
       'node',
       'test',
       'https://app.circleci.com/pipelines/github/owner/repo/1/workflows/abc/jobs/789',
       '--json',
     ]);
-    
+
     // Check that JSON was output
     const output = logSpy.mock.calls.join('');
     expect(output).toContain('"tests"');
     expect(output).toContain('"summary"');
-    
+
     delete process.env.CIRCLE_TOKEN;
     logSpy.mockRestore();
   });
@@ -167,20 +171,20 @@ describe('Tests Subcommand', () => {
     });
 
     const testsCommand = createTestsCommand();
-    
+
     // Ensure no token is set
     delete process.env.CIRCLE_TOKEN;
-    
+
     await expect(
       testsCommand.parseAsync([
         'node',
         'test',
         'https://app.circleci.com/pipelines/github/owner/repo/1/workflows/abc/jobs/123',
-      ])
+      ]),
     ).rejects.toThrow('process.exit(2)');
-    
+
     expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining('CIRCLE_TOKEN is required'));
-    
+
     errorSpy.mockRestore();
     exitSpy.mockRestore();
   });

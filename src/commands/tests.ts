@@ -12,7 +12,7 @@ import { printTestResults, printTestResultsJson } from '../tests-formatter.js';
 
 export function createTestsCommand(): Command {
   const testsCommand = new Command('tests');
-  
+
   testsCommand
     .description('Fetch and display test results from CircleCI v2 API')
     .argument('<url>', 'CircleCI job URL')
@@ -24,7 +24,7 @@ export function createTestsCommand(): Command {
     .option('--verbose', 'Show verbose output including debug information', false)
     .action(async (url: string) => {
       const opts = testsCommand.opts();
-      
+
       // Get token from option or environment
       const token = opts.token ?? process.env.CIRCLE_TOKEN;
       if (!token) {
@@ -33,34 +33,33 @@ export function createTestsCommand(): Command {
         );
         process.exit(2);
       }
-      
+
       try {
-        
         // Parse CircleCI job URL
         const jobInfo = parseJobUrl(url);
-        
+
         if (opts.verbose) {
           console.error(chalk.gray(`Parsed URL: ${JSON.stringify(jobInfo)}`));
           console.error(chalk.gray('Fetching test results from v2 API...'));
         }
-        
+
         // Fetch test results
         const testResults = await fetchTestResults(jobInfo, token);
-        
+
         if (opts.verbose) {
           console.error(chalk.gray(`Found ${testResults.length} test results`));
         }
-        
+
         // Create test options
         const testOptions: TestOptions = {
           failedOnly: opts.failedOnly,
           grep: opts.grep ? new RegExp(opts.grep) : null,
         };
-        
+
         // Filter and calculate summary
         const filteredTests = filterTestResults(testResults, testOptions);
         const summary = calculateTestSummary(filteredTests);
-        
+
         // Output results
         if (opts.json) {
           printTestResultsJson(filteredTests, summary);
@@ -75,7 +74,7 @@ export function createTestsCommand(): Command {
             printTestResults(filteredTests, summary, { failedOnly: opts.failedOnly });
           }
         }
-        
+
         // Exit with error code if requested
         if (opts.failOnTestFailure && hasFailedTests(filteredTests)) {
           process.exit(1);
@@ -86,6 +85,6 @@ export function createTestsCommand(): Command {
         process.exit(1);
       }
     });
-  
+
   return testsCommand;
 }

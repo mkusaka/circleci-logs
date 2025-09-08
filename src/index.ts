@@ -32,7 +32,7 @@ program
       program.outputHelp();
       process.exit(0);
     }
-    
+
     try {
       const opts = program.opts<Partial<CLIOptions>>();
 
