@@ -2,6 +2,7 @@ import { Command } from 'commander';
 import packageJson from '../package.json' with { type: 'json' };
 import { createTestsCommand } from './commands/tests.js';
 import { createLogsCommand } from './commands/logs.js';
+import { createMcpCommand } from './commands/mcp.js';
 
 export const program = new Command();
 
@@ -14,6 +15,7 @@ program
 // Add subcommands
 program.addCommand(createLogsCommand());
 program.addCommand(createTestsCommand());
+program.addCommand(createMcpCommand());
 
 // For backward compatibility: support direct URL as first argument
 // Check if first argument is a URL before commander processes it

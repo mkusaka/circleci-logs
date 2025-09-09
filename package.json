@@ -70,7 +70,9 @@
     "vitest": "^3.2.4"
   },
   "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.10.1",
     "chalk": "^5.6.0",
-    "commander": "^14.0.0"
+    "commander": "^14.0.0",
+    "zod": "^3.24.3"
   }
 }
