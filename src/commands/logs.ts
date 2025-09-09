@@ -116,4 +116,3 @@ export function createLogsCommand(): Command {
 
   return logsCommand;
 }
-

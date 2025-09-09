@@ -196,4 +196,3 @@ describe('Logs Subcommand', () => {
     exitSpy.mockRestore();
   });
 });
-
