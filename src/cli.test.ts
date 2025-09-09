@@ -3,16 +3,25 @@ import type { LogSegment } from './types.js';
 
 describe('CLI Integration Tests', () => {
   describe('--verbose option', () => {
-    it('should parse verbose option correctly', async () => {
+    it('should parse verbose option correctly in logs subcommand', async () => {
       // Since we're importing the program, we can test the option is registered
       const { program } = await import('./index.js');
-      const verboseOption = program.options.find((opt) => opt.long === '--verbose');
+      const logsCommand = program.commands.find((cmd) => cmd.name() === 'logs');
+      expect(logsCommand).toBeDefined();
+      const verboseOption = logsCommand?.options.find((opt) => opt.long === '--verbose');
       expect(verboseOption).toBeDefined();
       expect(verboseOption?.description).toContain('verbose');
     });
   });
 
   describe('subcommands', () => {
+    it('should have logs subcommand', async () => {
+      const { program } = await import('./index.js');
+      const logsCommand = program.commands.find((cmd) => cmd.name() === 'logs');
+      expect(logsCommand).toBeDefined();
+      expect(logsCommand?.description()).toContain('CircleCI job step logs');
+    });
+
     it('should have tests subcommand', async () => {
       const { program } = await import('./index.js');
       const testsCommand = program.commands.find((cmd) => cmd.name() === 'tests');
