@@ -61,36 +61,46 @@ pnpm link --global
 # Set your CircleCI Personal Token
 export CIRCLE_TOKEN=xxxxx
 
-# Fetch all logs from a CircleCI job URL
-circleci-logs "https://circleci.com/gh/org/repo/12345"
+# Fetch logs - both formats work
+circleci-logs "https://circleci.com/gh/org/repo/12345"                    # Backward compatible
+circleci-logs logs "https://circleci.com/gh/org/repo/12345"               # Explicit subcommand
 
-# Or use the new UI URL format
-circleci-logs "https://app.circleci.com/pipelines/github/org/repo/123/workflows/abc/jobs/12345"
-```
-
-### Options
-
-```bash
-# Show only failed actions
-circleci-logs --errors-only "https://circleci.com/gh/org/repo/12345"
-
-# Filter logs with regex pattern
-circleci-logs --grep "ERROR|WARN" "https://circleci.com/gh/org/repo/12345"
-
-# Output as JSON
-circleci-logs --json "https://circleci.com/gh/org/repo/12345"
-
-# Exit with code 1 if there are errors
-circleci-logs --fail-on-error "https://circleci.com/gh/org/repo/12345"
-
-# Use a specific token (instead of env variable)
-circleci-logs --token "your-token" "https://circleci.com/gh/org/repo/12345"
-
-# Show verbose output for debugging
-circleci-logs --verbose "https://circleci.com/gh/org/repo/12345"
+# Fetch test results
+circleci-logs tests "https://circleci.com/gh/org/repo/12345"
 ```
 
 ### Subcommands
+
+#### `logs` - Fetch Job Logs (v1.1 API)
+
+```bash
+# Fetch all logs from a CircleCI job URL
+circleci-logs logs "https://circleci.com/gh/org/repo/12345"
+
+# Or use the new UI URL format
+circleci-logs logs "https://app.circleci.com/pipelines/github/org/repo/123/workflows/abc/jobs/12345"
+
+# For backward compatibility, you can omit 'logs' subcommand
+circleci-logs "https://circleci.com/gh/org/repo/12345"
+
+# Show only failed actions
+circleci-logs logs --errors-only "https://circleci.com/gh/org/repo/12345"
+
+# Filter logs with regex pattern
+circleci-logs logs --grep "ERROR|WARN" "https://circleci.com/gh/org/repo/12345"
+
+# Output as JSON
+circleci-logs logs --json "https://circleci.com/gh/org/repo/12345"
+
+# Exit with code 1 if there are errors
+circleci-logs logs --fail-on-error "https://circleci.com/gh/org/repo/12345"
+
+# Use a specific token (instead of env variable)
+circleci-logs logs --token "your-token" "https://circleci.com/gh/org/repo/12345"
+
+# Show verbose output for debugging
+circleci-logs logs --verbose "https://circleci.com/gh/org/repo/12345"
+```
 
 #### `tests` - Fetch Test Results (v2 API)
 

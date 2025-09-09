@@ -2,7 +2,7 @@
 
 ## SYNOPSIS
 
-`circleci-logs` [OPTIONS] [URL]
+`circleci-logs` [OPTIONS] URL
 
 ## DESCRIPTION
 
@@ -13,35 +13,10 @@ and output in either human-readable or JSON format.
 The tool uses the CircleCI API v1.1 to fetch job details and requires a CircleCI
 Personal Token for authentication.
 
-## ARGUMENTS
-
-* `URL`:
-  CircleCI job URL
-  (`https://circleci.com/gh/org/repo/12345`) and new UI format
-  (`https://app.circleci.com/pipelines/github/org/repo/123/workflows/abc/jobs/12345`).
-
 ## OPTIONS
 
 * `-V, --version`:
   output the version number
-
-* `--errors-only`:
-  Only show actions with non-success status. Filters out all successful steps, displaying only failed, timed out, or errored actions.
-
-* `--grep <pattern>`:
-  Filter log lines using a regular expression pattern. Only lines matching the pattern will be displayed. Supports standard JavaScript regex syntax.
-
-* `--json`:
-  Output results as structured JSON instead of human-readable format. Useful for piping to other tools or for programmatic processing.
-
-* `--fail-on-error`:
-  Exit with code 1 if there are any error actions in the job. Useful for CI/CD pipelines to fail when errors are detected.
-
-* `--token <token>`:
-  CircleCI Personal Token for authentication. If not provided, the tool will use the CIRCLE_TOKEN environment variable.
-
-* `--verbose`:
-  Show verbose output including debug information
 
 * `-h`, `--help`:
   Display help information and exit.
