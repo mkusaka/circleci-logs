@@ -280,7 +280,7 @@ Uses CircleCI API v2 to fetch test results:
 
 When using this tool with AI assistants (Claude, ChatGPT, etc.), you can use these prompts:
 
-#### Primary Use Case: Check Failed PR CI
+#### Primary Use Case: Check Failed PR CI Logs
 ```
 Check if my PR has any failing CircleCI checks and show me the error logs.
 
@@ -290,7 +290,20 @@ Check if my PR has any failing CircleCI checks and show me the error logs.
 Steps:
 1. First check PR status: gh pr checks --json state,name,link
 2. If there are FAILURE states, get their logs:
-   gh pr checks --json state,link,name -q '.[] | select(.state=="FAILURE") | select(.name | contains("circleci")) | .link' | xargs -n1 circleci-logs --errors-only
+   gh pr checks --json state,link,name -q '.[] | select(.state=="FAILURE") | select(.name | contains("circleci")) | .link' | xargs -n1 circleci-logs logs --errors-only
+```
+
+#### Check Test Results for Failed Jobs
+```
+Show me the test failures from my CI run.
+
+# Prerequisites: CIRCLE_TOKEN environment variable must be set
+
+# Get test results from failed CircleCI jobs:
+gh pr checks --json state,link,name -q '.[] | select(.state=="FAILURE") | select(.name | contains("circleci")) | .link' | head -1 | xargs circleci-logs tests --failed-only
+
+# Or get all test results with summary:
+gh pr checks --json link -q '.[0].link' | xargs circleci-logs tests
 ```
 
 #### Quick Debug Failed CI
@@ -299,24 +312,28 @@ My PR CI is failing. Show me what's wrong.
 
 # Prerequisites: CIRCLE_TOKEN environment variable must be set
 
-Run:
-gh pr checks --json state,link,name -q '.[] | select(.state=="FAILURE") | .link' | head -1 | xargs circleci-logs --errors-only
+# Option 1: Show error logs
+gh pr checks --json state,link,name -q '.[] | select(.state=="FAILURE") | .link' | head -1 | xargs circleci-logs logs --errors-only
 
-This will show error logs from the first failed check.
+# Option 2: Show failed tests (if job has test results)
+gh pr checks --json state,link,name -q '.[] | select(.state=="FAILURE") | .link' | head -1 | xargs circleci-logs tests --failed-only
+
+This will show error logs or test failures from the first failed check.
 ```
 
-#### Comprehensive CI Analysis
+#### Comprehensive CI Analysis with Logs and Tests
 ```
 Analyze all failed CircleCI checks in my PR and summarize the issues.
 
 # Prerequisites: CIRCLE_TOKEN environment variable required
 
 # Basic circleci-logs usage:
-- circleci-logs <URL>                   # Fetch all logs from a CircleCI job
-- circleci-logs --errors-only <URL>     # Show only failed steps
-- circleci-logs --grep "pattern" <URL>  # Filter logs with regex
-- circleci-logs --json <URL>            # Output as JSON
-- circleci-logs --verbose <URL>         # Include debug information
+- circleci-logs logs <URL>                   # Fetch all logs from a CircleCI job
+- circleci-logs logs --errors-only <URL>     # Show only failed steps
+- circleci-logs logs --grep "pattern" <URL>  # Filter logs with regex
+- circleci-logs tests <URL>                  # Fetch test results
+- circleci-logs tests --failed-only <URL>    # Show only failed tests
+- circleci-logs tests --json <URL>           # Output test results as JSON
 
 Commands to run:
 1. List all failed checks:
@@ -324,16 +341,18 @@ Commands to run:
 
 2. Get error logs from each failed CircleCI check:
    gh pr checks --json state,link,name -q '.[] | select(.state=="FAILURE") | select(.name | contains("circleci")) | .link' | while read url; do
-     echo "=== Checking $url ==="
-     circleci-logs --errors-only "$url" | head -30
+     echo "=== Checking logs for $url ==="
+     circleci-logs logs --errors-only "$url" | head -30
+     echo "=== Checking test results ==="
+     circleci-logs tests --failed-only "$url" 2>/dev/null || echo "No test results available"
    done
 
-3. Search for specific error patterns:
+3. Search for specific error patterns in logs:
    # For critical errors only (less noise):
-   gh pr checks --json state,link,name -q '.[] | select(.state=="FAILURE") | select(.name | contains("circleci")) | .link' | head -1 | xargs circleci-logs --grep "ERROR|FAILED|FATAL"
+   gh pr checks --json state,link,name -q '.[] | select(.state=="FAILURE") | select(.name | contains("circleci")) | .link' | head -1 | xargs circleci-logs logs --grep "ERROR|FAILED|FATAL"
    
    # For comprehensive error search (may include more context):
-   gh pr checks --json state,link,name -q '.[] | select(.state=="FAILURE") | select(.name | contains("circleci")) | .link' | head -1 | xargs circleci-logs --grep -i "error|fail|timeout"
+   gh pr checks --json state,link,name -q '.[] | select(.state=="FAILURE") | select(.name | contains("circleci")) | .link' | head -1 | xargs circleci-logs logs --grep -i "error|fail|timeout"
 
 Then provide:
 - Summary of which checks failed
@@ -349,9 +368,10 @@ URL: https://circleci.com/gh/org/repo/12345
 # Prerequisites: CIRCLE_TOKEN must be set
 
 Run these diagnostics:
-1. circleci-logs --errors-only "[URL]" | head -50
-2. circleci-logs --grep "ERROR|FAILED|FATAL|error|failed|timeout" "[URL]" 
-3. circleci-logs --verbose "[URL]" 2>&1 | grep -E "Job status|Steps:"
+1. circleci-logs logs --errors-only "[URL]" | head -50
+2. circleci-logs logs --grep "ERROR|FAILED|FATAL|error|failed|timeout" "[URL]" 
+3. circleci-logs logs --verbose "[URL]" 2>&1 | grep -E "Job status|Steps:"
+4. circleci-logs tests --failed-only "[URL]"
 
 Identify the root cause and suggest fixes.
 ```
@@ -363,10 +383,11 @@ Monitor and debug CI failures on my current branch (no PR yet).
 # Prerequisites: CIRCLE_TOKEN environment variable required
 
 # Basic circleci-logs usage:
-- circleci-logs <URL>                   # Fetch all logs from a CircleCI job
-- circleci-logs --errors-only <URL>     # Show only failed steps
-- circleci-logs --grep "pattern" <URL>  # Filter logs with regex
-- circleci-logs --verbose <URL>         # Include debug information
+- circleci-logs logs <URL>                   # Fetch all logs from a CircleCI job
+- circleci-logs logs --errors-only <URL>     # Show only failed steps
+- circleci-logs logs --grep "pattern" <URL>  # Filter logs with regex
+- circleci-logs tests <URL>                  # Fetch test results
+- circleci-logs tests --failed-only <URL>    # Show only failed tests
 
 Commands for branch monitoring:
 1. List recent workflow runs on current branch:
@@ -377,14 +398,14 @@ Commands for branch monitoring:
      jq -r '.[0].databaseId' | \
      xargs -I{} gh run view {} --json jobs | \
      jq -r '.jobs[] | select(.conclusion=="failure") | .url' | \
-     xargs -n1 circleci-logs --errors-only
+     xargs -n1 circleci-logs logs --errors-only
 
 3. Monitor specific workflow by name:
    gh run list --branch $(git branch --show-current) --workflow "CI" --limit 1 --json databaseId | \
      jq -r '.[0].databaseId' | \
      xargs -I{} gh run view {} --json jobs | \
      jq -r '.jobs[].url' | \
-     xargs -n1 circleci-logs
+     xargs -n1 circleci-logs logs
 
 4. Watch CI status in real-time:
    watch -n 30 'gh run list --branch $(git branch --show-current) --limit 5'
@@ -413,7 +434,7 @@ Quick check workflow:
 3. For CircleCI specific logs with more detail:
    gh run view --json jobs | \
      jq -r '.jobs[] | select(.conclusion=="failure") | .url' | \
-     xargs -n1 circleci-logs --errors-only --grep "ERROR|FAIL"
+     xargs -n1 circleci-logs logs --errors-only --grep "ERROR|FAIL"
 
 4. Check if it's a flaky test:
    # Re-run failed jobs
