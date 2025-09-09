@@ -62,41 +62,10 @@ jobs:
       - name: Publish to npm with provenance
         run: npm publish --provenance --access public
       
-      - name: Generate release notes
-        id: release-notes
-        run: |
-          # Get the previous tag
-          PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
-          
-          if [ -n "$PREV_TAG" ]; then
-            echo "Generating release notes from $PREV_TAG to $GITHUB_REF_NAME"
-            RELEASE_NOTES=$(gh api \
-              --method POST \
-              -H "Accept: application/vnd.github+json" \
-              "/repos/$GITHUB_REPOSITORY/releases/generate-notes" \
-              -f "tag_name=$GITHUB_REF_NAME" \
-              -f "previous_tag_name=$PREV_TAG" \
-              --jq '.body')
-          else
-            echo "First release, generating notes from beginning"
-            RELEASE_NOTES=$(gh api \
-              --method POST \
-              -H "Accept: application/vnd.github+json" \
-              "/repos/$GITHUB_REPOSITORY/releases/generate-notes" \
-              -f "tag_name=$GITHUB_REF_NAME" \
-              --jq '.body')
-          fi
-          
-          echo "RELEASE_NOTES<<EOF" >> $GITHUB_ENV
-          echo "$RELEASE_NOTES" >> $GITHUB_ENV
-          echo "EOF" >> $GITHUB_ENV
-        env:
-          GH_TOKEN: ${{ github.token }}
-      
       - name: Create GitHub Release
         run: |
           gh release create "$GITHUB_REF_NAME" \
             --title "$GITHUB_REF_NAME" \
-            --notes "$RELEASE_NOTES"
+            --generate-notes
         env:
           GH_TOKEN: ${{ github.token }}
