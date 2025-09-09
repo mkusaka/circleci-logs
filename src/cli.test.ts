@@ -14,6 +14,65 @@ describe('CLI Integration Tests', () => {
     });
   });
 
+  describe('backward compatibility', () => {
+    it('should inject logs subcommand when URL is passed directly', async () => {
+      // Save original process.argv
+      const originalArgv = [...process.argv];
+
+      // Test with direct URL
+      process.argv = ['node', 'cli.js', 'https://circleci.com/gh/org/repo/123'];
+
+      // Re-import to trigger the preprocessing
+      vi.resetModules();
+      await import('./index.js');
+
+      // Check that logs was injected
+      expect(process.argv[2]).toBe('logs');
+      expect(process.argv[3]).toBe('https://circleci.com/gh/org/repo/123');
+
+      // Restore original argv
+      process.argv = originalArgv;
+    });
+
+    it('should not modify argv when subcommand is already present', async () => {
+      // Save original process.argv
+      const originalArgv = [...process.argv];
+
+      // Test with explicit logs subcommand
+      process.argv = ['node', 'cli.js', 'logs', 'https://circleci.com/gh/org/repo/123'];
+
+      // Re-import to trigger the preprocessing
+      vi.resetModules();
+      await import('./index.js');
+
+      // Check that argv was not modified
+      expect(process.argv[2]).toBe('logs');
+      expect(process.argv[3]).toBe('https://circleci.com/gh/org/repo/123');
+
+      // Restore original argv
+      process.argv = originalArgv;
+    });
+
+    it('should not modify argv for tests subcommand', async () => {
+      // Save original process.argv
+      const originalArgv = [...process.argv];
+
+      // Test with tests subcommand
+      process.argv = ['node', 'cli.js', 'tests', 'https://circleci.com/gh/org/repo/123'];
+
+      // Re-import to trigger the preprocessing
+      vi.resetModules();
+      await import('./index.js');
+
+      // Check that argv was not modified
+      expect(process.argv[2]).toBe('tests');
+      expect(process.argv[3]).toBe('https://circleci.com/gh/org/repo/123');
+
+      // Restore original argv
+      process.argv = originalArgv;
+    });
+  });
+
   describe('subcommands', () => {
     it('should have logs subcommand', async () => {
       const { program } = await import('./index.js');

@@ -16,21 +16,12 @@ program.addCommand(createLogsCommand());
 program.addCommand(createTestsCommand());
 
 // For backward compatibility: support direct URL as first argument
-program
-  .argument('[command]', 'Command or URL')
-  .argument('[url]', 'URL for subcommand')
-  .action((commandOrUrl, _url) => {
-    // If first argument looks like a URL, treat it as logs command
-    if (commandOrUrl && (commandOrUrl.startsWith('http') || commandOrUrl.includes('circleci'))) {
-      // Get all original arguments after the program name
-      const originalArgs = process.argv.slice(2);
-      // Insert 'logs' before the URL
-      const newArgs = ['logs', ...originalArgs];
-      // Re-parse with logs subcommand
-      program.parse(newArgs, { from: 'user' });
-    } else if (!commandOrUrl) {
-      // No arguments provided, show help
-      program.outputHelp();
-    }
-    // Otherwise, let commander handle it normally (it's a subcommand)
-  });
+// Check if first argument is a URL before commander processes it
+const firstArg = process.argv[2];
+if (firstArg && (firstArg.startsWith('http') || firstArg.includes('circleci'))) {
+  // Insert 'logs' before the URL for backward compatibility
+  const originalArgs = process.argv.slice(2);
+  const newArgs = ['logs', ...originalArgs];
+  // Override process.argv for commander to parse
+  process.argv = [...process.argv.slice(0, 2), ...newArgs];
+}
