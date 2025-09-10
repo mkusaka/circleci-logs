@@ -274,6 +274,160 @@ Uses CircleCI API v2 to fetch test results:
 3. Handle pagination to fetch all test results
 4. Apply filters and format the output
 
+## MCP (Model Context Protocol) Server
+
+### Overview
+
+circleci-logs includes an MCP server that enables AI assistants (Claude Desktop, VSCode, Cursor, etc.) to use it as a tool for fetching and analyzing CircleCI logs programmatically.
+
+### Starting the MCP Server
+
+```bash
+# Start the MCP server (uses stdio transport)
+export CIRCLE_TOKEN=your-token-here
+circleci-logs mcp
+```
+
+### Setting up with Claude Desktop
+
+Add the following configuration to your Claude Desktop settings:
+
+#### macOS
+Edit: `~/Library/Application Support/Claude/claude_desktop_config.json`
+
+#### Windows
+Edit: `%APPDATA%\Claude\claude_desktop_config.json`
+
+#### Linux
+Edit: `~/.config/claude/claude_desktop_config.json`
+
+Add the circleci-logs server configuration:
+
+```json
+{
+  "mcpServers": {
+    "circleci-logs": {
+      "command": "npx",
+      "args": ["circleci-logs", "mcp"],
+      "env": {
+        "CIRCLE_TOKEN": "your-circleci-token-here"
+      }
+    }
+  }
+}
+```
+
+Or if you have it installed globally:
+
+```json
+{
+  "mcpServers": {
+    "circleci-logs": {
+      "command": "circleci-logs",
+      "args": ["mcp"],
+      "env": {
+        "CIRCLE_TOKEN": "your-circleci-token-here"
+      }
+    }
+  }
+}
+```
+
+### Setting up with Claude Code (VSCode Extension)
+
+Add to your workspace settings (`.vscode/settings.json`):
+
+```json
+{
+  "claude.mcpServers": {
+    "circleci-logs": {
+      "command": "npx",
+      "args": ["circleci-logs", "mcp"],
+      "env": {
+        "CIRCLE_TOKEN": "${env:CIRCLE_TOKEN}"
+      }
+    }
+  }
+}
+```
+
+### Available MCP Tools
+
+#### `fetch_logs`
+Fetches CircleCI job logs from a URL with various filtering options.
+
+**Parameters:**
+- `url` (string, required): CircleCI job URL
+- `errors_only` (boolean, optional): Only show actions with non-success status
+- `grep` (string, optional): Filter log lines with regex pattern
+- `format` (string, optional): Output format - "text" or "json" (default: "text")
+
+**Example usage in Claude:**
+```
+"Can you check the CircleCI logs for https://circleci.com/gh/org/repo/12345 and show me only the errors?"
+```
+
+Claude will use the `fetch_logs` tool with `errors_only: true` to fetch and analyze the logs.
+
+#### `search_pr_checks` (Coming in Phase 2)
+Search CircleCI checks for a GitHub PR.
+
+#### `get_failed_checks` (Coming in Phase 2)
+Get all failed CircleCI checks from the current PR.
+
+### Usage Examples with AI Assistants
+
+Once configured, you can ask your AI assistant:
+
+1. **Debug CI failures:**
+   ```
+   "Check the CircleCI job at https://circleci.com/gh/myorg/myrepo/12345 and tell me why it's failing"
+   ```
+
+2. **Search for specific errors:**
+   ```
+   "Look for timeout errors in this CircleCI job: https://circleci.com/gh/myorg/myrepo/12345"
+   ```
+
+3. **Analyze test failures:**
+   ```
+   "Get the logs from https://circleci.com/gh/myorg/myrepo/12345 and identify which tests are failing"
+   ```
+
+4. **Filter specific patterns:**
+   ```
+   "Search for database connection errors in the CircleCI logs at https://circleci.com/gh/myorg/myrepo/12345"
+   ```
+
+The AI assistant will automatically use the MCP server to fetch logs, apply filters, and analyze the results to provide insights about your CI failures.
+
+### Security Considerations
+
+- **Token Management**: Store your CIRCLE_TOKEN securely. Never commit it to version control.
+- **Local Processing**: The MCP server runs locally and communicates directly with CircleCI APIs.
+- **Minimal Permissions**: Use a CircleCI Personal Token with read-only access.
+
+### Troubleshooting MCP Server
+
+1. **Server not starting:**
+   - Ensure circleci-logs is installed: `npm list -g circleci-logs`
+   - Check Node.js version: `node --version` (requires >= 22.18.0)
+
+2. **Token issues:**
+   - Verify CIRCLE_TOKEN is set: `echo $CIRCLE_TOKEN`
+   - Test token directly: `curl -H "Circle-Token: $CIRCLE_TOKEN" https://circleci.com/api/v1.1/me`
+
+3. **Claude Desktop not finding the tool:**
+   - Restart Claude Desktop after updating config
+   - Check config file syntax (must be valid JSON)
+   - Verify command path: `which circleci-logs` or `npx circleci-logs --version`
+
+4. **Debug MCP communication:**
+   ```bash
+   # Test the MCP server directly
+   echo '{"jsonrpc":"2.0","method":"tools/list","params":{},"id":1}' | circleci-logs mcp
+   ```
+
 ## LLM Usage
 
 ### Prompt Examples for AI Assistants
