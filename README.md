@@ -8,7 +8,7 @@ Fetch CircleCI job step logs from GitHub PR checks URLs. Lightweight CLI tool wi
 
 ## Requirements
 
-- Node.js >= 22.18.0
+- Node.js >= 20.0.0
 - CircleCI Personal Token
 
 ## Installation
