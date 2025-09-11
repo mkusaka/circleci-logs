@@ -1,6 +1,6 @@
 {
   "name": "circleci-logs",
-  "version": "0.0.9",
+  "version": "0.0.10",
   "description": "Fetch CircleCI job step logs from a gh pr checks URL",
   "main": "dist/index.js",
   "type": "module",
