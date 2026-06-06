@@ -1,0 +1,12 @@
+packages:
+  - .
+minimumReleaseAge: 10080
+minimumReleaseAgeStrict: true
+strictDepBuilds: true
+trustPolicy: no-downgrade
+blockExoticSubdeps: true
+trustPolicyExclude:
+  - 'undici-types@6.21.0'
+allowBuilds:
+  esbuild: true
+  msw: true
