@@ -60,7 +60,7 @@
   "devDependencies": {
     "@types/node": "^24.3.0",
     "@vitest/ui": "^3.2.4",
-    "happy-dom": "^18.0.1",
+    "happy-dom": "^20.8.9",
     "marked-man": "^2.1.0",
     "msw": "^2.10.5",
     "oxlint": "^1.12.0",
