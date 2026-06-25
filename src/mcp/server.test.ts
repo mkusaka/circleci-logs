@@ -18,6 +18,12 @@ vi.mock('../filters.js', () => ({
   filterLines: vi.fn(),
 }));
 
+function textContent(response: { content: Array<{ type: string; text?: string }> }): string {
+  const content = response.content[0];
+  expect(content?.type).toBe('text');
+  return content?.text ?? '';
+}
+
 describe('MCP Server E2E Tests', () => {
   let mcpServer: ReturnType<typeof createMcpServer>;
   let client: Client;
@@ -89,8 +95,7 @@ describe('MCP Server E2E Tests', () => {
       );
 
       expect(response.content).toBeDefined();
-      expect(response.content[0]?.type).toBe('text');
-      expect(response.content[0]?.text).toContain('CIRCLE_TOKEN environment variable is required');
+      expect(textContent(response)).toContain('CIRCLE_TOKEN environment variable is required');
       expect(response.isError).toBe(true);
 
       // Restore token
@@ -166,11 +171,10 @@ describe('MCP Server E2E Tests', () => {
       );
 
       expect(response.content).toBeDefined();
-      expect(response.content[0]?.type).toBe('text');
-      expect(response.content[0]?.text).toContain('Setup');
-      expect(response.content[0]?.text).toContain('Build');
-      expect(response.content[0]?.text).toContain('Setting up environment');
-      expect(response.content[0]?.text).toContain('Building project');
+      expect(textContent(response)).toContain('Setup');
+      expect(textContent(response)).toContain('Build');
+      expect(textContent(response)).toContain('Setting up environment');
+      expect(textContent(response)).toContain('Building project');
       expect(response.isError).toBeUndefined();
     });
 
@@ -236,10 +240,10 @@ describe('MCP Server E2E Tests', () => {
         CallToolResultSchema,
       );
 
-      expect(response.content[0]?.text).toContain('Build');
-      expect(response.content[0]?.text).toContain('failed');
-      expect(response.content[0]?.text).toContain('Build failed with error');
-      expect(response.content[0]?.text).not.toContain('Setup');
+      expect(textContent(response)).toContain('Build');
+      expect(textContent(response)).toContain('failed');
+      expect(textContent(response)).toContain('Build failed with error');
+      expect(textContent(response)).not.toContain('Setup');
     });
 
     it('should return JSON format when requested', async () => {
@@ -285,7 +289,7 @@ describe('MCP Server E2E Tests', () => {
         CallToolResultSchema,
       );
 
-      const jsonContent = JSON.parse((response.content[0] as any)?.text || '[]');
+      const jsonContent = JSON.parse(textContent(response) || '[]');
       expect(Array.isArray(jsonContent)).toBe(true);
       expect(jsonContent[0]).toHaveProperty('step', 'Test');
       expect(jsonContent[0]).toHaveProperty('action');
@@ -346,9 +350,9 @@ describe('MCP Server E2E Tests', () => {
       );
 
       expect(filters.filterLines).toHaveBeenCalledWith(allLines, expect.any(RegExp));
-      expect(response.content[0]?.text).toContain('Test failed: connection error');
-      expect(response.content[0]?.text).not.toContain('Starting tests');
-      expect(response.content[0]?.text).not.toContain('Retrying');
+      expect(textContent(response)).toContain('Test failed: connection error');
+      expect(textContent(response)).not.toContain('Starting tests');
+      expect(textContent(response)).not.toContain('Retrying');
     });
 
     it('should handle errors gracefully', async () => {
@@ -372,8 +376,8 @@ describe('MCP Server E2E Tests', () => {
         CallToolResultSchema,
       );
 
-      expect(response.content[0]?.text).toContain('Error fetching logs');
-      expect(response.content[0]?.text).toContain('Invalid URL format');
+      expect(textContent(response)).toContain('Error fetching logs');
+      expect(textContent(response)).toContain('Invalid URL format');
       expect(response.isError).toBe(true);
     });
   });
@@ -395,8 +399,8 @@ describe('MCP Server E2E Tests', () => {
         CallToolResultSchema,
       );
 
-      expect(response.content[0]?.text).toContain('not yet implemented');
-      expect(response.content[0]?.text).toContain('Phase 2');
+      expect(textContent(response)).toContain('not yet implemented');
+      expect(textContent(response)).toContain('Phase 2');
     });
 
     it('should return not implemented message for get_failed_checks', async () => {
@@ -413,8 +417,8 @@ describe('MCP Server E2E Tests', () => {
         CallToolResultSchema,
       );
 
-      expect(response.content[0]?.text).toContain('not yet implemented');
-      expect(response.content[0]?.text).toContain('Phase 2');
+      expect(textContent(response)).toContain('not yet implemented');
+      expect(textContent(response)).toContain('Phase 2');
     });
   });
 });
